@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { getStoredProjects, addProject, updateProject, deleteProject, resetToStatic, checkAdminPassword } from '@/lib/portfolioDataManager'
-import type { Project } from '@/data/portfolio'
+import { getStats, updateStats } from '@/lib/statsDataManager'
+import type { Project, SiteStats } from '@/data/portfolio'
 
 const emptyForm = {
   title: '',
@@ -25,14 +26,27 @@ export default function AdminPage() {
   const [form, setForm] = useState(emptyForm)
   const [showForm, setShowForm] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
+  const [stats, setStats] = useState<SiteStats | null>(null)
+  const [editStats, setEditStats] = useState(false)
+  const [statsForm, setStatsForm] = useState<SiteStats>({ projects: 4, certificates: 1, completedWorks: 4, cvUrl: '' })
+
+  const refreshStats = useCallback(async () => {
+    const s = await getStats()
+    setStats(s)
+    setStatsForm(s)
+  }, [])
+
   const refresh = useCallback(async () => {
     const p = await getStoredProjects()
     setProjects(p)
   }, [])
 
   useEffect(() => {
-    if (authed) refresh()
-  }, [authed, refresh])
+    if (authed) {
+      refresh()
+      refreshStats()
+    }
+  }, [authed, refresh, refreshStats])
 
   const showToast = (msg: string) => {
     setToast(msg)
@@ -135,6 +149,17 @@ export default function AdminPage() {
     }
   }
 
+  const handleSaveStats = async () => {
+    const ok = await updateStats(statsForm)
+    if (ok) {
+      showToast('Stats updated')
+      setEditStats(false)
+      await refreshStats()
+    } else {
+      showToast('Failed to update stats')
+    }
+  }
+
   if (!authed) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
@@ -190,6 +215,59 @@ export default function AdminPage() {
             + Add Project
           </button>
         </div>
+      </div>
+
+      {/* Stats editor */}
+      <div className="glass-card rounded-2xl p-6 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold">About Section Stats</h2>
+          <button
+            onClick={() => { setEditStats(!editStats); if (!editStats) setStatsForm(stats ?? { projects: 4, certificates: 1, completedWorks: 4, cvUrl: '' }) }}
+            className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-sm transition"
+          >
+            {editStats ? 'Cancel' : 'Edit'}
+          </button>
+        </div>
+        {editStats ? (
+          <div className="flex gap-4 items-end flex-wrap">
+            {(['projects', 'certificates', 'completedWorks'] as const).map((key) => (
+              <div key={key}>
+                <label className="text-xs text-[rgba(var(--c-light),0.5)] block mb-1 capitalize">
+                  {key.replace(/([A-Z])/g, ' $1')}
+                </label>
+                <input
+                  type="number"
+                  value={statsForm[key]}
+                  onChange={(e) => setStatsForm(s => ({ ...s, [key]: Number(e.target.value) }))}
+                  className="w-24 px-3 py-2 rounded-xl bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] text-white outline-none focus:border-[rgba(255,255,255,0.3)] transition"
+                />
+              </div>
+            ))}
+            <div className="w-full">
+              <label className="text-xs text-[rgba(var(--c-light),0.5)] block mb-1">CV URL</label>
+              <input
+                type="text"
+                value={statsForm.cvUrl}
+                onChange={(e) => setStatsForm(s => ({ ...s, cvUrl: e.target.value }))}
+                className="w-full px-3 py-2 rounded-xl bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] text-white outline-none focus:border-[rgba(255,255,255,0.3)] transition"
+              />
+            </div>
+            <button onClick={handleSaveStats} className="px-4 py-2 rounded-xl bg-white/20 hover:bg-white/30 text-sm font-medium transition">
+              Save
+            </button>
+          </div>
+        ) : (
+          <div className="flex gap-6 flex-wrap items-center">
+            <span className="text-sm">Projects: <strong>{stats?.projects ?? '-'}</strong></span>
+            <span className="text-sm">Certificates: <strong>{stats?.certificates ?? '-'}</strong></span>
+            <span className="text-sm">Completed Works: <strong>{stats?.completedWorks ?? '-'}</strong></span>
+            {stats?.cvUrl && (
+              <a href={stats.cvUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-400 underline truncate max-w-[200px]">
+                CV Link
+              </a>
+            )}
+          </div>
+        )}
       </div>
 
       {showForm && (

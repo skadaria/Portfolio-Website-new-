@@ -10,6 +10,8 @@ import {
   ArrowUpRight,
   ExternalLink,
 } from "lucide-react";
+import { getStats } from '@/lib/statsDataManager'
+import type { SiteStats } from '@/data/portfolio'
 
 const skills = ["HTML/CSS/JS", "Python", "SQL", "PHP/Laravel", "Oracle"];
 
@@ -53,6 +55,7 @@ const pop: Variants = {
 export default function About() {
   const [isMobile, setIsMobile] = useState<boolean | null>(null);
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
+  const [statsData, setStatsData] = useState<SiteStats | null>(null);
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -61,6 +64,10 @@ export default function About() {
     return () => window.removeEventListener("resize", check);
   }, []);
 
+  useEffect(() => {
+    getStats().then(setStatsData)
+  }, [])
+
   const scrollToPortfolio = () => {
     const el = document.getElementById("portfolio");
     if (el) el.scrollIntoView({ behavior: "smooth" });
@@ -68,23 +75,13 @@ export default function About() {
 
   if (isMobile === null) return null;
 
-  const stats = [
-    {
-      icon: <Code size={14} />,
-      value: "4",
-      title: "PROJECTS",
-    },
-    {
-      icon: <Award size={14} />,
-      value: "1",
-      title: "CERTIFICATES",
-    },
-    {
-      icon: <Globe size={14} />,
-      value: "4",
-      title: "COMPLETED WORKS",
-    },
-  ];
+  const stats = statsData
+    ? [
+        { icon: <Code size={14} />, value: String(statsData.projects), title: "PROJECTS" },
+        { icon: <Award size={14} />, value: String(statsData.certificates), title: "CERTIFICATES" },
+        { icon: <Globe size={14} />, value: String(statsData.completedWorks), title: "COMPLETED WORKS" },
+      ]
+    : [];
 
   return (
     <section
@@ -170,7 +167,7 @@ export default function About() {
               className="flex gap-3 mt-6 flex-wrap"
             >
               <a
-                href="https://drive.google.com/file/d/1B29j43onUHFPezPAyN8okMfG1fZ6BoVK/view?usp=sharing"
+                href={statsData?.cvUrl || "#"}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="no-underline"

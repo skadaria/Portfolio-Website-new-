@@ -97,3 +97,17 @@ export const techStacks: TechStack[] = [
   { id: 9, name: "SQL", logo_url: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original-wordmark.svg", created_at: "2025-01-01" },
   { id: 10, name: "Apex", logo_url: "https://raw.githubusercontent.com/Dani3lSun/awesome-orclapex/master/apex-logo.svg", created_at: "2025-01-01" },
 ]
+
+export interface SiteStats {
+  projects: number
+  certificates: number
+  completedWorks: number
+  cvUrl: string
+}
+
+export const defaultStats: SiteStats = {
+  projects: 4,
+  certificates: 1,
+  completedWorks: 4,
+  cvUrl: "https://drive.google.com/file/d/1B29j43onUHFPezPAyN8okMfG1fZ6BoVK/view?usp=sharing",
+}
