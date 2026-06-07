@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Home, User, Briefcase, Mail, Shield, ExternalLink } from 'lucide-react'
 import ThemeToggle from './ThemeToggle'
@@ -114,8 +115,6 @@ export default function Navbar() {
   const [showNavbar, setShowNavbar] = useState(false)
   const [showBlur, setShowBlur] = useState(false)
   const pathname = usePathname()
-  const router = useRouter()
-
   const handleLogoClick = () => {
     const home = document.getElementById('home')
     if (home) {
@@ -305,18 +304,41 @@ export default function Navbar() {
             const Icon = item.icon
             const isActive = activeSection === item.id
             const isAdmin = item.id === 'admin'
+            if (isAdmin) {
+              return (
+                <Link
+                  key={item.id}
+                  href="/admin"
+                  prefetch={true}
+                  className="nav-link"
+                  style={{
+                    position: 'relative',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                    fontFamily: "'DM Mono', monospace",
+                    fontSize: 13,
+                    textDecoration: 'none',
+                    letterSpacing: '0.06em',
+                    cursor: 'pointer',
+                    padding: '11px 14px',
+                    borderRadius: 10,
+                    overflow: 'hidden',
+                    color: 'var(--text-secondary)',
+                  }}
+                >
+                  <span style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <Icon size={15} strokeWidth={1.5} />
+                    {item.label}
+                  </span>
+                </Link>
+              )
+            }
             return (
               <a
                 key={item.id}
-                href={isAdmin ? '/admin' : `#${item.id}`}
-                onClick={(e) => {
-                  if (isAdmin) {
-                    e.preventDefault()
-                    router.push('/admin')
-                  } else {
-                    smoothScrollTo(e, `#${item.id}`)
-                  }
-                }}
+                href={`#${item.id}`}
+                onClick={(e) => smoothScrollTo(e, `#${item.id}`)}
                 className="nav-link"
                 style={{
                   position: 'relative',
@@ -334,7 +356,7 @@ export default function Navbar() {
                   color: isActive ? 'var(--text-primary)' : undefined,
                 }}
               >
-                {isActive && !isAdmin && (
+                {isActive && (
                   <motion.div
                     layoutId="nav-pill"
                     style={{
@@ -504,18 +526,34 @@ export default function Navbar() {
               const isActive = activeSection === item.id
               const isAdmin = item.id === 'admin'
 
+              if (isAdmin) {
+                return (
+                  <Link
+                    key={item.id}
+                    href="/admin"
+                    prefetch={true}
+                    style={{
+                      position: 'relative',
+                      fontFamily: "'DM Mono', monospace",
+                      fontSize: 13,
+                      color: 'var(--text-secondary)',
+                      textDecoration: 'none',
+                      letterSpacing: '0.08em',
+                      cursor: 'pointer',
+                      paddingBottom: 4,
+                      transition: '0.25s ease',
+                    }}
+                  >
+                    {item.label}
+                  </Link>
+                )
+              }
+
               return (
                 <a
                   key={item.id}
-                  href={isAdmin ? '/admin' : `#${item.id}`}
-                  onClick={(e) => {
-                    if (isAdmin) {
-                      e.preventDefault()
-                      router.push('/admin')
-                    } else {
-                      smoothScrollTo(e, `#${item.id}`)
-                    }
-                  }}
+                  href={`#${item.id}`}
+                  onClick={(e) => smoothScrollTo(e, `#${item.id}`)}
                   style={{
                     position: 'relative',
                     fontFamily: "'DM Mono', monospace",
@@ -591,24 +629,36 @@ export default function Navbar() {
             const isActive = activeSection === item.id
             const isAdmin = item.id === 'admin'
 
+            if (isAdmin) {
+              return (
+                <Link
+                  key={item.id}
+                  href="/admin"
+                  prefetch={true}
+                  style={{
+                    fontFamily: "'DM Mono', monospace",
+                    fontSize: 13,
+                    color: 'var(--text-secondary)',
+                    textDecoration: 'none',
+                  }}
+                >
+                  {item.label}
+                </Link>
+              )
+            }
+
             return (
               <a
                 key={item.id}
-                href={isAdmin ? '/admin' : `#${item.id}`}
-                onClick={(e) => {
-                  if (isAdmin) {
-                    e.preventDefault()
-                    router.push('/admin')
-                  } else {
-                    smoothScrollTo(e, `#${item.id}`)
-                  }
-                }}
+                href={`#${item.id}`}
+                onClick={(e) => smoothScrollTo(e, `#${item.id}`)}
                 style={{
                   fontFamily: "'DM Mono', monospace",
                   fontSize: 13,
                   color: isActive
                     ? 'var(--text-primary)'
                     : 'var(--text-secondary)',
+                  textDecoration: 'none',
                 }}
               >
                 {item.label}
