@@ -57,7 +57,7 @@ const AnimatedBackground = ({ reduced }: AnimatedBackgroundProps) => {
 
   return (
     <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-      <div className="absolute inset-0" style={{ opacity: reduced ? 0 : 1, transition: 'opacity 1s ease' }}>
+      <div className="absolute inset-0" style={{ opacity: reduced ? 0 : 1, transition: 'opacity 1s ease', display: isMobile ? 'none' : undefined }}>
         {/* kiri atas */}
         <div
           ref={(ref) => {

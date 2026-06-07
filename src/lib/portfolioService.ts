@@ -1,7 +1,9 @@
-import { projects, certificates, techStacks } from '@/data/portfolio'
+import { getStoredProjects } from '@/lib/portfolioDataManager'
+import { certificates, techStacks } from '@/data/portfolio'
+import type { Project } from '@/data/portfolio'
 
-export const fetchProjects = () => {
-  return projects
+export const fetchProjects = (): Project[] => {
+  return getStoredProjects()
 }
 
 export const fetchCertificates = () => {

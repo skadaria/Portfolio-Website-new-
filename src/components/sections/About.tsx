@@ -71,7 +71,7 @@ export default function About() {
   const stats = [
     {
       icon: <Code size={14} />,
-      value: "2",
+      value: "4",
       title: "PROJECTS",
     },
     {

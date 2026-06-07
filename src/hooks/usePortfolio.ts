@@ -1,3 +1,9 @@
+import { useState, useEffect } from 'react'
+import {
+  projects as staticProjects,
+  certificates as staticCertificates,
+  techStacks as staticTechStacks,
+} from '@/data/portfolio'
 import {
   fetchProjects,
   fetchCertificates,
@@ -5,9 +11,15 @@ import {
 } from '@/lib/portfolioService'
 
 export default function usePortfolio() {
-  const projects = fetchProjects()
-  const certificates = fetchCertificates()
-  const techStacks = fetchTechStacks()
+  const [projects, setProjects] = useState(staticProjects)
+  const [certificates, setCertificates] = useState(staticCertificates)
+  const [techStacks, setTechStacks] = useState(staticTechStacks)
+
+  useEffect(() => {
+    setProjects(fetchProjects())
+    setCertificates(fetchCertificates())
+    setTechStacks(fetchTechStacks())
+  }, [])
 
   return {
     projects,

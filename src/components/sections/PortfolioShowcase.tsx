@@ -1,12 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   X,
   ChevronDown,
   ChevronUp,
-  ExternalLink,
 } from 'lucide-react'
 import usePortfolio from '@/hooks/usePortfolio'
 import PortfolioCard from './PortfolioCard'
@@ -36,6 +35,15 @@ export default function PortfolioShowcase() {
 
   const [showAllProjects, setShowAllProjects] =
     useState(false)
+
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768)
+    check()
+    window.addEventListener('resize', check, { passive: true })
+    return () => window.removeEventListener('resize', check)
+  }, [])
 
   const displayedProjects = showAllProjects
     ? projects
@@ -147,7 +155,7 @@ export default function PortfolioShowcase() {
                 <div
                   className="grid md:grid-cols-2 xl:grid-cols-3 gap-6 px-1"
                 >
-                  <AnimatePresence mode="popLayout">
+                   <AnimatePresence mode={isMobile ? 'wait' : 'popLayout'}>
                     {!loading &&
                       displayedProjects.map(
                         (item, i) => (
@@ -180,6 +188,7 @@ export default function PortfolioShowcase() {
                               image={item.image_url || undefined}
                               live_url={item.live_url || undefined}
                               github_url={item.github_url || undefined}
+                              technologies={item.technologies}
                               id={item.id}
                             />
                           </motion.div>
@@ -293,8 +302,8 @@ export default function PortfolioShowcase() {
                   src={item.logo_url}
                   alt={item.name}
                   className=              {"relative z-10 w-[56px] h-[56px] object-contain grayscale group-hover:grayscale-0 transition-all duration-500" +
-                (item.name === "Django" || item.name === "Oracle" ? " brightness-[1.5] group-hover:brightness-100" : "") +
-                (item.name === "HTML" || item.name === "CSS" || item.name === "Python" ? " contrast-[1.5] group-hover:contrast-100" : "")}
+                (item.name === "Django" || item.name === "Oracle" ? " dark:brightness-[1.5] dark:group-hover:brightness-100" : "") +
+                (item.name === "HTML" || item.name === "CSS" || item.name === "Python" ? " dark:contrast-[1.5] dark:group-hover:contrast-100" : "")}
                 />
               ) : (
                 <div className="relative z-10 w-[56px] h-[56px] rounded-2xl bg-[rgba(var(--c-light),0.1)]" />
@@ -312,25 +321,6 @@ export default function PortfolioShowcase() {
           </motion.div>
         </AnimatePresence>
 
-        {/* SEE MORE ON GITHUB */}
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.25, delay: 0.1 }}
-          className="flex justify-center mt-12"
-        >
-          <motion.a
-            href="https://github.com/skadaria?tab=repositories"
-            target="_blank"
-            rel="noopener noreferrer"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.97 }}
-            className="px-8 py-3.5 rounded-full glass-card text-sm text-[rgba(var(--c-light),0.75)] hover:text-[rgb(var(--c-light))] transition flex items-center gap-3" style={{ border: 'none', textDecoration: 'none' }}
-          >
-            <ExternalLink size={18} />
-            See More on GitHub
-          </motion.a>
-        </motion.div>
         </div>
       </section>
       <style>{`
