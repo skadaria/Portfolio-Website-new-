@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { getStoredProjects, addProject, updateProject, deleteProject, exportAsTS, resetToStatic, checkAdminPassword } from '@/lib/portfolioDataManager'
+import { getStoredProjects, addProject, updateProject, deleteProject, resetToStatic, checkAdminPassword } from '@/lib/portfolioDataManager'
 import type { Project } from '@/data/portfolio'
 
 const emptyForm = {
@@ -25,8 +25,6 @@ export default function AdminPage() {
   const [form, setForm] = useState(emptyForm)
   const [showForm, setShowForm] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
-  const [exportCode, setExportCode] = useState<string | null>(null)
-
   const refresh = useCallback(async () => {
     const p = await getStoredProjects()
     setProjects(p)
@@ -137,16 +135,6 @@ export default function AdminPage() {
     }
   }
 
-  const handleExport = () => {
-    setExportCode(exportAsTS(projects))
-  }
-
-  const copyExport = () => {
-    if (!exportCode) return
-    navigator.clipboard.writeText(exportCode)
-    showToast('Copied to clipboard')
-  }
-
   if (!authed) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
@@ -194,12 +182,6 @@ export default function AdminPage() {
             className="px-5 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 text-sm transition"
           >
             Reset to Static
-          </button>
-          <button
-            onClick={handleExport}
-            className="px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm transition"
-          >
-            Export TS
           </button>
           <button
             onClick={handleAdd}
@@ -261,30 +243,6 @@ export default function AdminPage() {
               </button>
             </div>
           </form>
-        </div>
-      )}
-
-      {exportCode && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/80 backdrop-blur-sm" onClick={() => setExportCode(null)}>
-          <div className="w-full max-w-3xl max-h-[80vh] glass-card rounded-2xl p-6 overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">Export TypeScript</h2>
-              <div className="flex gap-2">
-                <button onClick={copyExport} className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-sm transition">
-                  Copy
-                </button>
-                <button onClick={() => setExportCode(null)} className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-sm transition">
-                  Close
-                </button>
-              </div>
-            </div>
-            <pre className="flex-1 overflow-auto text-xs leading-relaxed text-[rgba(var(--c-light),0.8)] bg-[rgba(0,0,0,0.3)] rounded-xl p-4 custom-scroll whitespace-pre-wrap break-all">
-              {exportCode}
-            </pre>
-            <p className="text-xs text-[rgba(var(--c-light),0.4)] mt-3">
-              Copy this into <code className="text-white/60">src/data/portfolio.ts</code> and rebuild.
-            </p>
-          </div>
         </div>
       )}
 
