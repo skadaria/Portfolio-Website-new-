@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { Home, User, Briefcase, Mail, ExternalLink } from 'lucide-react'
+import { Home, User, Briefcase, Mail, Shield, ExternalLink } from 'lucide-react'
 import ThemeToggle from './ThemeToggle'
 
 function GithubIcon({ size = 16 }: { size?: number }) {
@@ -114,6 +114,7 @@ export default function Navbar() {
   const [showNavbar, setShowNavbar] = useState(false)
   const [showBlur, setShowBlur] = useState(false)
   const pathname = usePathname()
+  const router = useRouter()
 
   const handleLogoClick = () => {
     const home = document.getElementById('home')
@@ -219,6 +220,7 @@ export default function Navbar() {
     { label: 'About', id: 'about', icon: User },
     { label: 'Portfolio', id: 'portfolio', icon: Briefcase },
     { label: 'Contact', id: 'contact', icon: Mail },
+    { label: 'Admin', id: 'admin', icon: Shield },
   ]
 
   if (isDesktop) {
@@ -302,11 +304,19 @@ export default function Navbar() {
           {navItems.map((item) => {
             const Icon = item.icon
             const isActive = activeSection === item.id
+            const isAdmin = item.id === 'admin'
             return (
               <a
                 key={item.id}
-                href={`#${item.id}`}
-                onClick={(e) => smoothScrollTo(e, `#${item.id}`)}
+                href={isAdmin ? '/admin' : `#${item.id}`}
+                onClick={(e) => {
+                  if (isAdmin) {
+                    e.preventDefault()
+                    router.push('/admin')
+                  } else {
+                    smoothScrollTo(e, `#${item.id}`)
+                  }
+                }}
                 className="nav-link"
                 style={{
                   position: 'relative',
@@ -324,7 +334,7 @@ export default function Navbar() {
                   color: isActive ? 'var(--text-primary)' : undefined,
                 }}
               >
-                {isActive && (
+                {isActive && !isAdmin && (
                   <motion.div
                     layoutId="nav-pill"
                     style={{
@@ -492,12 +502,20 @@ export default function Navbar() {
           <div style={{ display: 'flex', gap: 40 }}>
             {navItems.map((item) => {
               const isActive = activeSection === item.id
+              const isAdmin = item.id === 'admin'
 
               return (
                 <a
                   key={item.id}
-                  href={`#${item.id}`}
-                  onClick={(e) => smoothScrollTo(e, `#${item.id}`)}
+                  href={isAdmin ? '/admin' : `#${item.id}`}
+                  onClick={(e) => {
+                    if (isAdmin) {
+                      e.preventDefault()
+                      router.push('/admin')
+                    } else {
+                      smoothScrollTo(e, `#${item.id}`)
+                    }
+                  }}
                   style={{
                     position: 'relative',
                     fontFamily: "'DM Mono', monospace",
@@ -571,12 +589,20 @@ export default function Navbar() {
         >
           {navItems.map((item) => {
             const isActive = activeSection === item.id
+            const isAdmin = item.id === 'admin'
 
             return (
               <a
                 key={item.id}
-                href={`#${item.id}`}
-                onClick={(e) => smoothScrollTo(e, `#${item.id}`)}
+                href={isAdmin ? '/admin' : `#${item.id}`}
+                onClick={(e) => {
+                  if (isAdmin) {
+                    e.preventDefault()
+                    router.push('/admin')
+                  } else {
+                    smoothScrollTo(e, `#${item.id}`)
+                  }
+                }}
                 style={{
                   fontFamily: "'DM Mono', monospace",
                   fontSize: 13,
