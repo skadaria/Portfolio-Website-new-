@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { getStoredProjects, saveProjects, deleteProject, exportAsTS, resetToStatic, hasLocalOverride, checkAdminPassword } from '@/lib/portfolioDataManager'
+import { getStoredProjects, addProject, updateProject, deleteProject, exportAsTS, resetToStatic, checkAdminPassword } from '@/lib/portfolioDataManager'
 import type { Project } from '@/data/portfolio'
 
 const emptyForm = {
@@ -26,12 +26,10 @@ export default function AdminPage() {
   const [showForm, setShowForm] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const [exportCode, setExportCode] = useState<string | null>(null)
-  const [hasOverride, setHasOverride] = useState(false)
 
-  const refresh = useCallback(() => {
-    const p = getStoredProjects()
+  const refresh = useCallback(async () => {
+    const p = await getStoredProjects()
     setProjects(p)
-    setHasOverride(hasLocalOverride())
   }, [])
 
   useEffect(() => {
@@ -74,14 +72,18 @@ export default function AdminPage() {
     setShowForm(true)
   }
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (!confirm('Delete this project permanently?')) return
-    deleteProject(id)
-    refresh()
-    showToast('Project deleted')
+    const ok = await deleteProject(id)
+    if (ok) {
+      await refresh()
+      showToast('Project deleted')
+    } else {
+      showToast('Failed to delete')
+    }
   }
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!form.title.trim()) {
       showToast('Title is required')
@@ -101,35 +103,42 @@ export default function AdminPage() {
     }
 
     if (editingId) {
-      const current = getStoredProjects()
-      const updated = current.map(p => p.id === editingId ? { ...p, ...projectData } : p)
-      saveProjects(updated)
-      showToast('Project updated')
-    } else {
-      const newProject: Project = {
-        ...projectData,
-        id: crypto.randomUUID?.() ?? Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
+      const result = await updateProject(editingId, projectData)
+      if (result) {
+        showToast('Project updated')
+      } else {
+        showToast('Failed to update')
+        return
       }
-      const current = getStoredProjects()
-      saveProjects([...current, newProject])
-      showToast('Project added')
+    } else {
+      const result = await addProject(projectData)
+      if (result) {
+        showToast('Project added')
+      } else {
+        showToast('Failed to add')
+        return
+      }
     }
 
     setShowForm(false)
     setEditingId(null)
     setForm(emptyForm)
-    refresh()
+    await refresh()
   }
 
-  const handleReset = () => {
+  const handleReset = async () => {
     if (!confirm('Reset all projects to the static defaults? This cannot be undone.')) return
-    resetToStatic()
-    refresh()
-    showToast('Reset to static defaults')
+    try {
+      await resetToStatic()
+      await refresh()
+      showToast('Reset to static defaults')
+    } catch {
+      showToast('Failed to reset')
+    }
   }
 
   const handleExport = () => {
-    setExportCode(exportAsTS())
+    setExportCode(exportAsTS(projects))
   }
 
   const copyExport = () => {
@@ -166,31 +175,26 @@ export default function AdminPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-10">
-      {/* Toast */}
       {toast && (
         <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-xl glass-card text-sm">
           {toast}
         </div>
       )}
 
-      {/* Header */}
       <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
         <div>
           <h1 className="text-3xl font-bold">Dashboard</h1>
           <p className="text-sm text-[rgba(var(--c-light),0.5)] mt-1">
             {projects.length} project{projects.length !== 1 ? 's' : ''}
-            {hasOverride && ' (local override active)'}
           </p>
         </div>
         <div className="flex gap-3 flex-wrap">
-          {hasOverride && (
-            <button
-              onClick={handleReset}
-              className="px-5 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 text-sm transition"
-            >
-              Reset to Static
-            </button>
-          )}
+          <button
+            onClick={handleReset}
+            className="px-5 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 text-sm transition"
+          >
+            Reset to Static
+          </button>
           <button
             onClick={handleExport}
             className="px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm transition"
@@ -206,7 +210,6 @@ export default function AdminPage() {
         </div>
       </div>
 
-      {/* Project Form */}
       {showForm && (
         <div className="glass-card rounded-2xl p-6 mb-8">
           <h2 className="text-lg font-semibold mb-4">
@@ -261,7 +264,6 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* Export Modal */}
       {exportCode && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/80 backdrop-blur-sm" onClick={() => setExportCode(null)}>
           <div className="w-full max-w-3xl max-h-[80vh] glass-card rounded-2xl p-6 overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
@@ -286,7 +288,6 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* Project Cards */}
       {projects.length === 0 ? (
         <div className="text-center py-20 text-[rgba(var(--c-light),0.3)]">
           <p className="text-lg">No projects yet</p>

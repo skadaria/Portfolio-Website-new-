@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import type { Project } from '@/data/portfolio'
 import {
   projects as staticProjects,
   certificates as staticCertificates,
@@ -11,20 +12,23 @@ import {
 } from '@/lib/portfolioService'
 
 export default function usePortfolio() {
-  const [projects, setProjects] = useState(staticProjects)
-  const [certificates, setCertificates] = useState(staticCertificates)
-  const [techStacks, setTechStacks] = useState(staticTechStacks)
+  const [projects, setProjects] = useState<Project[]>(staticProjects)
+  const [certificates] = useState(staticCertificates)
+  const [techStacks] = useState(staticTechStacks)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    setProjects(fetchProjects())
-    setCertificates(fetchCertificates())
-    setTechStacks(fetchTechStacks())
+    fetchProjects()
+      .then(data => {
+        if (data && data.length > 0) setProjects(data)
+      })
+      .finally(() => setLoading(false))
   }, [])
 
   return {
     projects,
     certificates,
     techStacks,
-    loading: false,
+    loading,
   }
 }

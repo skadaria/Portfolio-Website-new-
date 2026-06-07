@@ -2,7 +2,7 @@ import { getStoredProjects } from '@/lib/portfolioDataManager'
 import { certificates, techStacks } from '@/data/portfolio'
 import type { Project } from '@/data/portfolio'
 
-export const fetchProjects = (): Project[] => {
+export const fetchProjects = async (): Promise<Project[]> => {
   return getStoredProjects()
 }
 

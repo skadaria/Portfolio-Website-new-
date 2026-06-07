@@ -1,62 +1,78 @@
 import { projects as staticProjects } from '@/data/portfolio'
 import type { Project } from '@/data/portfolio'
 
-const STORAGE_KEY = 'portfolio_projects'
-const PASSWORD_KEY = 'portfolio_admin_password'
+const API = '/api/projects'
 
-export function getStoredProjects(): Project[] {
-  if (typeof window === 'undefined') return staticProjects
+export async function getStoredProjects(): Promise<Project[]> {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) {
-      const parsed = JSON.parse(raw)
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed as Project[]
+    const res = await fetch(API)
+    if (res.ok) {
+      const data: Project[] = await res.json()
+      if (Array.isArray(data)) return data
     }
   } catch {}
-  return staticProjects
+  return [...staticProjects]
 }
 
-export function saveProjects(projects: Project[]): void {
-  if (typeof window === 'undefined') return
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(projects, null, 2))
+export async function addProject(project: Omit<Project, 'id'>): Promise<Project | null> {
+  try {
+    const res = await fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(project),
+    })
+    if (res.ok) return res.json()
+  } catch {}
+  return null
 }
 
-export function addProject(project: Omit<Project, 'id'>): Project {
-  const projects = getStoredProjects()
-  const newProject: Project = {
-    ...project,
-    id: crypto.randomUUID?.() ?? Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
+export async function updateProject(id: string, updates: Partial<Project>): Promise<Project | null> {
+  try {
+    const res = await fetch(API, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, ...updates }),
+    })
+    if (res.ok) return res.json()
+  } catch {}
+  return null
+}
+
+export async function deleteProject(id: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${API}?id=${id}`, { method: 'DELETE' })
+    return res.ok
+  } catch {
+    return false
   }
-  projects.push(newProject)
-  saveProjects(projects)
-  return newProject
 }
 
-export function updateProject(id: string, updates: Partial<Project>): Project | null {
-  const projects = getStoredProjects()
-  const index = projects.findIndex(p => p.id === id)
-  if (index === -1) return null
-  projects[index] = { ...projects[index], ...updates }
-  saveProjects(projects)
-  return projects[index]
+export async function saveProjects(projects: Project[]): Promise<boolean> {
+  try {
+    const res = await fetch(API, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ projects }),
+    })
+    return res.ok
+  } catch {
+    return false
+  }
 }
 
-export function deleteProject(id: string): boolean {
-  const projects = getStoredProjects()
-  const filtered = projects.filter(p => p.id !== id)
-  if (filtered.length === projects.length) return false
-  saveProjects(filtered)
-  return true
+export async function resetToStatic(): Promise<void> {
+  try {
+    await fetch(API, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'reset' }),
+    })
+  } catch {
+    throw new Error('Failed to reset')
+  }
 }
 
-export function resetToStatic(): void {
-  if (typeof window === 'undefined') return
-  localStorage.removeItem(STORAGE_KEY)
-}
-
-export function exportAsTS(): string {
-  const projects = getStoredProjects()
-
+export function exportAsTS(projects: Project[]): string {
   const fmt = (val: unknown, indent = 2): string => {
     const pad = '  '.repeat(indent)
     if (val === null) return 'null'
@@ -90,19 +106,6 @@ ${projectEntries.join(',\n')},
 export const certificates = []
 
 export const techStacks = []`
-}
-
-export function hasLocalOverride(): boolean {
-  if (typeof window === 'undefined') return false
-  return localStorage.getItem(STORAGE_KEY) !== null
-}
-
-export function setAdminPassword(password: string): void {
-  localStorage.setItem(PASSWORD_KEY, password)
-}
-
-export function getAdminPassword(): string | null {
-  return localStorage.getItem(PASSWORD_KEY)
 }
 
 export function checkAdminPassword(input: string): boolean {
