@@ -2,8 +2,6 @@ import { NextResponse } from 'next/server'
 import { promises as dns } from 'dns'
 import nodemailer from 'nodemailer'
 
-dns.setServers(['8.8.8.8', '1.1.1.1'])
-
 const DISPOSABLE_DOMAINS = new Set([
   'mailinator.com', 'guerrillamail.com', 'sharklasers.com', 'temp-mail.org',
   '10minutemail.com', 'throwaway.email', 'yopmail.com', 'trashmail.com',
@@ -115,7 +113,7 @@ async function validateDomain(domain: string): Promise<{ valid: boolean; reason?
     if (code === 'ENOTFOUND' || code === 'ENODATA' || code === 'ESERVFAIL' || code === 'ETIMEOUT') {
       return { valid: false, reason: 'Email domain does not exist' }
     }
-    return { valid: false, reason: 'Failed to send message' }
+    return { valid: false, reason: 'Email domain does not exist' }
   }
 }
 
