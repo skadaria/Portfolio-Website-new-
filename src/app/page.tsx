@@ -80,10 +80,11 @@ useLayoutEffect(() => {
 }, [])
 
 useEffect(() => {
-  if (sessionStorage.getItem('fromAdmin') === 'true') {
-    sessionStorage.removeItem('fromAdmin')
-    window.location.reload()
+  const handlePageShow = (e: PageTransitionEvent) => {
+    if (e.persisted) window.location.reload()
   }
+  window.addEventListener('pageshow', handlePageShow)
+  return () => window.removeEventListener('pageshow', handlePageShow)
 }, [])
 
   return (

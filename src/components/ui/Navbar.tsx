@@ -620,10 +620,10 @@ export default function Navbar() {
                           alignSelf: 'center',
                         }}
                       />
-                      <Link
-                        href="/admin"
-                        prefetch={true}
-                        className="nav-link-h admin-link-h"
+                  <Link
+                    href="/admin"
+                    prefetch={true}
+                    className="nav-link-h admin-link-h"
                       style={{
                         position: 'relative',
                         fontFamily: "'DM Mono', monospace",

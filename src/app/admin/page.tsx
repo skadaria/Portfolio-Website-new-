@@ -44,14 +44,6 @@ export default function AdminPage() {
     setStatsForm(s)
   }, [])
 
-  useEffect(() => {
-    const handlePopState = () => {
-      sessionStorage.setItem('fromAdmin', 'true')
-    }
-    window.addEventListener('popstate', handlePopState)
-    return () => window.removeEventListener('popstate', handlePopState)
-  }, [])
-
   const refreshBlog = useCallback(async () => {
     const p = await getBlogPosts()
     setBlogPosts(p)
