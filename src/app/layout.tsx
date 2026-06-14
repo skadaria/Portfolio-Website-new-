@@ -1,6 +1,7 @@
 import "./globals.css";
 import RefreshRedirect from '@/components/RefreshRedirect'
 import { ThemeProvider } from '@/context/ThemeContext'
+import { ToastProvider } from '@/context/ToastContext'
 
 export const metadata = {
   title: "Srijal Kadariya",
@@ -23,8 +24,10 @@ export default function RootLayout({
       </head>
       <body suppressHydrationWarning>
         <ThemeProvider>
-          <RefreshRedirect />
-          {children}
+          <ToastProvider>
+            <RefreshRedirect />
+            {children}
+          </ToastProvider>
         </ThemeProvider>
       </body>
     </html>

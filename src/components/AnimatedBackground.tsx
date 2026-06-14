@@ -63,7 +63,7 @@ const AnimatedBackground = ({ reduced }: AnimatedBackgroundProps) => {
           ref={(ref) => {
             blobRefs.current[0] = ref
           }}
-          className="absolute top-10 left-10 w-40 h-40 md:w-56 md:h-56 rounded-full blur-[20px] md:blur-[90px] opacity-[0.07]"
+          className="absolute top-10 left-10 w-40 h-40 md:w-56 md:h-56 rounded-full blur-[20px] md:blur-[60px] opacity-[0.07]"
           style={{ backgroundColor: 'rgb(var(--blob-1))', willChange: 'transform', transition: 'transform 1.2s ease-out' }}
         />
 
@@ -72,7 +72,7 @@ const AnimatedBackground = ({ reduced }: AnimatedBackgroundProps) => {
           ref={(ref) => {
             blobRefs.current[1] = ref
           }}
-          className="absolute top-10 right-10 w-40 h-40 md:w-56 md:h-56 rounded-full blur-[25px] md:blur-[100px] opacity-[0.06]"
+          className="absolute top-10 right-10 w-40 h-40 md:w-56 md:h-56 rounded-full blur-[25px] md:blur-[60px] opacity-[0.06]"
           style={{ backgroundColor: 'rgb(var(--blob-2))', willChange: 'transform', transition: 'transform 1.2s ease-out' }}
         />
 
@@ -81,7 +81,7 @@ const AnimatedBackground = ({ reduced }: AnimatedBackgroundProps) => {
           ref={(ref) => {
             blobRefs.current[2] = ref
           }}
-          className="absolute bottom-10 left-10 w-44 h-44 md:w-60 md:h-60 rounded-full blur-[25px] md:blur-[110px] opacity-[0.06]"
+          className="absolute bottom-10 left-10 w-44 h-44 md:w-60 md:h-60 rounded-full blur-[25px] md:blur-[70px] opacity-[0.06]"
           style={{ backgroundColor: 'rgb(var(--blob-3))', willChange: 'transform', transition: 'transform 1.2s ease-out' }}
         />
 
@@ -90,7 +90,7 @@ const AnimatedBackground = ({ reduced }: AnimatedBackgroundProps) => {
           ref={(ref) => {
             blobRefs.current[3] = ref
           }}
-          className="absolute bottom-10 right-10 w-40 h-40 md:w-56 md:h-56 rounded-full blur-[25px] md:blur-[100px] opacity-[0.05]"
+          className="absolute bottom-10 right-10 w-40 h-40 md:w-56 md:h-56 rounded-full blur-[25px] md:blur-[60px] opacity-[0.05]"
           style={{ backgroundColor: 'rgb(var(--blob-4))', willChange: 'transform', transition: 'transform 1.2s ease-out' }}
         />
       </div>

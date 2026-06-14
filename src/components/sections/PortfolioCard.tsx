@@ -58,6 +58,7 @@ export default function PortfolioCard({
         {image ? (
           <img
             src={image}
+            loading="lazy"
             className="w-full h-full object-cover transition-all duration-500"
           />
         ) : (
@@ -88,6 +89,8 @@ export default function PortfolioCard({
                 <img
                   src={logo}
                   alt={tech}
+                  loading="lazy"
+                  decoding="async"
                   className="w-4 h-4"
                 />
               </div>
@@ -151,6 +154,7 @@ export default function PortfolioCard({
         {image ? (
           <img
             src={image}
+            loading="lazy"
             className="w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-500"
           />
         ) : (
@@ -181,6 +185,8 @@ export default function PortfolioCard({
                 <img
                   src={logo}
                   alt={tech}
+                  loading="lazy"
+                  decoding="async"
                   className="w-4 h-4 grayscale group-hover:grayscale-0 transition-all duration-300"
                 />
               </div>

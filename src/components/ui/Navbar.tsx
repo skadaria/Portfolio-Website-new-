@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Fragment } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion } from 'framer-motion'
@@ -244,8 +244,8 @@ export default function Navbar() {
           height: 'calc(100vh - 24px)',
           zIndex: 50,
           background: 'var(--nav-glass)',
-          backdropFilter: 'blur(40px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(40px) saturate(180%)',
+          backdropFilter: 'blur(20px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
           border: '1px solid rgba(255,255,255,0.08)',
           borderRadius: 28,
           boxShadow: '8px 8px 60px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06)',
@@ -306,32 +306,39 @@ export default function Navbar() {
             const isAdmin = item.id === 'admin'
             if (isAdmin) {
               return (
-                <Link
-                  key={item.id}
-                  href="/admin"
-                  prefetch={true}
-                  className="nav-link"
-                  style={{
-                    position: 'relative',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
-                    fontFamily: "'DM Mono', monospace",
-                    fontSize: 13,
-                    textDecoration: 'none',
-                    letterSpacing: '0.06em',
-                    cursor: 'pointer',
-                    padding: '11px 14px',
-                    borderRadius: 10,
-                    overflow: 'hidden',
-                    color: 'var(--text-secondary)',
-                  }}
-                >
-                  <span style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <Icon size={15} strokeWidth={1.5} />
-                    {item.label}
-                  </span>
-                </Link>
+                <Fragment key={item.id}>
+                  <div
+                    style={{
+                      height: 1,
+                      background: 'var(--border)',
+                      margin: '4px 14px 6px',
+                    }}
+                  />
+                  <Link
+                    href="/admin"
+                    prefetch={true}
+                    className="nav-link admin-link"
+                    style={{
+                      position: 'relative',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 12,
+                      fontFamily: "'DM Mono', monospace",
+                      fontSize: 13,
+                      textDecoration: 'none',
+                      letterSpacing: '0.06em',
+                      cursor: 'pointer',
+                      padding: '11px 14px',
+                      borderRadius: 10,
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <span style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <Icon size={15} strokeWidth={1.5} />
+                      {item.label}
+                    </span>
+                  </Link>
+                </Fragment>
               )
             }
             return (
@@ -425,8 +432,8 @@ export default function Navbar() {
         }
         [data-theme="light"] .desktop-sidebar {
           background: rgba(10, 10, 10, 0.68) !important;
-          backdrop-filter: blur(50px) saturate(160%) !important;
-          -webkit-backdrop-filter: blur(50px) saturate(160%) !important;
+          backdrop-filter: blur(20px) saturate(160%) !important;
+          -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
           border: 1px solid rgba(255,255,255,0.06) !important;
           box-shadow: 8px 12px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04) !important;
         }
@@ -434,7 +441,7 @@ export default function Navbar() {
           color: var(--text-secondary);
           background: transparent;
           transform: translateX(0);
-          transition: all 0.25s ease;
+          transition: transform 0.25s ease, color 0.25s ease, background 0.25s ease;
         }
         .nav-link:hover {
           color: var(--text-primary) !important;
@@ -473,70 +480,176 @@ export default function Navbar() {
         [data-theme="light"] .nav-label {
           color: rgba(255,255,255,0.5);
         }
+
+        .nav-link.admin-link {
+          background: linear-gradient(#111, #111) padding-box, linear-gradient(135deg, #ffffff 0%, #666666 50%, #ffffff 100%) border-box !important;
+          border: 3px solid transparent !important;
+          border-radius: 10px !important;
+          box-shadow: 0 0 4px rgba(255,255,255,0.4), 0 0 12px rgba(255,255,255,0.15) !important;
+          color: #fff !important;
+          text-shadow: 0 0 8px rgba(255,255,255,0.3) !important;
+        }
+        .nav-link.admin-link svg {
+          color: #fff !important;
+          filter: drop-shadow(0 0 4px rgba(255,255,255,0.25)) !important;
+        }
+        .nav-link.admin-link::before,
+        .nav-link.admin-link::after {
+          display: none !important;
+        }
+        .nav-link.admin-link:hover {
+        }
+        [data-theme="light"] .nav-link.admin-link {
+          background: linear-gradient(#111, #111) padding-box, linear-gradient(135deg, #ffffff 0%, #666666 50%, #ffffff 100%) border-box !important;
+          border-color: transparent !important;
+          box-shadow: 0 0 4px rgba(255,255,255,0.4), 0 0 12px rgba(255,255,255,0.15) !important;
+        }
+        [data-theme="light"] .nav-link.admin-link:hover {
+        }
+
+        .nav-link-h.admin-link-h {
+          background: linear-gradient(#111, #111) padding-box, linear-gradient(135deg, #ffffff 0%, #666666 50%, #ffffff 100%) border-box;
+          border: 3px solid transparent;
+          border-radius: 8px;
+          box-shadow: 0 0 4px rgba(255,255,255,0.4), 0 0 12px rgba(255,255,255,0.15);
+          color: #fff;
+          text-shadow: 0 0 8px rgba(255,255,255,0.3);
+        }
+        .nav-link-h.admin-link-h::before,
+        .nav-link-h.admin-link-h::after {
+          display: none !important;
+        }
+        .nav-link-h.admin-link-h:hover {
+        }
+        [data-theme="light"] .nav-link-h.admin-link-h {
+          background: linear-gradient(#111, #111) padding-box, linear-gradient(135deg, #ffffff 0%, #666666 50%, #ffffff 100%) border-box;
+          border-color: transparent;
+          box-shadow: 0 0 4px rgba(255,255,255,0.4), 0 0 12px rgba(255,255,255,0.15);
+        }
+        [data-theme="light"] .nav-link-h.admin-link-h:hover {
+        }
+
+        .admin-link-m {
+          background: linear-gradient(#111, #111) padding-box, linear-gradient(135deg, #ffffff 0%, #666666 50%, #ffffff 100%) border-box;
+          border: 3px solid transparent;
+          border-radius: 8px;
+          box-shadow: 0 0 4px rgba(255,255,255,0.4), 0 0 12px rgba(255,255,255,0.15);
+          color: #fff;
+          text-shadow: 0 0 8px rgba(255,255,255,0.3);
+        }
+        .admin-link-m::before,
+        .admin-link-m::after {
+          display: none !important;
+        }
+        .admin-link-m:hover {
+        }
+        [data-theme="light"] .admin-link-m {
+          background: linear-gradient(#111, #111) padding-box, linear-gradient(135deg, #ffffff 0%, #666666 50%, #ffffff 100%) border-box;
+          border-color: transparent;
+          box-shadow: 0 0 4px rgba(255,255,255,0.4), 0 0 12px rgba(255,255,255,0.15);
+        }
+        [data-theme="light"] .admin-link-m:hover {
+        }
       `}</style>
       </>
     )
   }
 
   return (
-    <motion.nav
-      initial={{ opacity: 0, y: -40 }}
-      animate={{
-        opacity: showNavbar ? 1 : 0,
-        y: showNavbar ? 0 : -40,
-      }}
-      transition={{
-        duration: 0.8,
-        ease: [0.22, 1, 0.36, 1],
-      }}
-      style={{
-        position: 'fixed',
-        top: 20,
-        left: isMobile ? 20 : 60,
-        right: isMobile ? 20 : 60,
-        zIndex: 50,
-      }}
-    >
-      <div
+    <>
+      <motion.nav
+        initial={{ opacity: 0, y: -40 }}
+        animate={{
+          opacity: showNavbar ? 1 : 0,
+          y: showNavbar ? 0 : -40,
+        }}
+        transition={{
+          duration: 0.8,
+          ease: [0.22, 1, 0.36, 1],
+        }}
         style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '10px 30px',
-          width: '100%',
-          borderRadius: 999,
-          backgroundColor: 'var(--nav-glass)',
-          backdropFilter: 'blur(16px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(16px) saturate(180%)',
-          border: '1px solid rgba(255,255,255,0.06)',
-          boxShadow: '0 16px 50px rgba(0,0,0,0.25)',
+          position: 'fixed',
+          top: 20,
+          left: isMobile ? 20 : 60,
+          right: isMobile ? 20 : 60,
+          zIndex: 50,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div onClick={handleLogoClick} style={{ cursor: 'pointer' }}>
-            <SKLogo />
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '10px 30px',
+            width: '100%',
+            borderRadius: 999,
+            backgroundColor: 'var(--nav-glass)',
+            backdropFilter: 'blur(16px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+            border: '1px solid rgba(255,255,255,0.06)',
+            boxShadow: '0 16px 50px rgba(0,0,0,0.25)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div onClick={handleLogoClick} style={{ cursor: 'pointer' }}>
+              <SKLogo />
+            </div>
+
+            <ThemeToggle />
           </div>
 
-          <ThemeToggle />
-        </div>
+          {!isMobile && (
+            <div style={{ display: 'flex', gap: 40 }}>
+              {navItems.map((item) => {
+                const isActive = activeSection === item.id
+                const isAdmin = item.id === 'admin'
 
-        {!isMobile && (
-          <div style={{ display: 'flex', gap: 40 }}>
-            {navItems.map((item) => {
-              const isActive = activeSection === item.id
-              const isAdmin = item.id === 'admin'
+                if (isAdmin) {
+                  return (
+                    <Fragment key={item.id}>
+                      <span
+                        style={{
+                          width: 1,
+                          height: 16,
+                          background: 'rgba(255,255,255,0.1)',
+                          alignSelf: 'center',
+                        }}
+                      />
+                      <Link
+                        href="/admin"
+                        prefetch={true}
+                        className="nav-link-h admin-link-h"
+                      style={{
+                        position: 'relative',
+                        fontFamily: "'DM Mono', monospace",
+                        fontSize: 13,
+                        textDecoration: 'none',
+                        letterSpacing: '0.08em',
+                        cursor: 'pointer',
+                        padding: '6px 16px',
+                        borderRadius: 8,
+                        overflow: 'hidden',
+                        transition: '0.25s ease',
+                      }}
+                      >
+                        {item.label}
+                      </Link>
+                    </Fragment>
+                  )
+                }
 
-              if (isAdmin) {
                 return (
-                  <Link
+                  <a
                     key={item.id}
-                    href="/admin"
-                    prefetch={true}
+                    href={`#${item.id}`}
+                    onClick={(e) => smoothScrollTo(e, `#${item.id}`)}
                     style={{
                       position: 'relative',
                       fontFamily: "'DM Mono', monospace",
                       fontSize: 13,
-                      color: 'var(--text-secondary)',
+                      color: isActive
+                        ? 'var(--text-primary)'
+                        : 'var(--text-secondary)',
                       textDecoration: 'none',
                       letterSpacing: '0.08em',
                       cursor: 'pointer',
@@ -545,7 +658,94 @@ export default function Navbar() {
                     }}
                   >
                     {item.label}
-                  </Link>
+
+                    <span
+                      style={{
+                        position: 'absolute',
+                        bottom: 0,
+                        left: 0,
+                        width: '100%',
+                        height: 1,
+                        background: 'var(--text-primary)',
+                        transform: isActive
+                          ? 'scaleX(1)'
+                          : 'scaleX(0)',
+                        transformOrigin: 'left',
+                        transition: 'transform 0.25s ease',
+                      }}
+                    />
+                  </a>
+                )
+              })}
+            </div>
+          )}
+
+          {isMobile && (
+            <div
+              onClick={() => setOpen(!open)}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 4,
+                cursor: 'pointer',
+              }}
+            >
+              <span style={{ width: 20, height: 2, background: 'var(--text-primary)' }} />
+              <span style={{ width: 20, height: 2, background: 'var(--text-primary)' }} />
+              <span style={{ width: 20, height: 2, background: 'var(--text-primary)' }} />
+            </div>
+          )}
+        </div>
+
+        {isMobile && open && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            style={{
+              marginTop: 10,
+              borderRadius: 16,
+              background: 'var(--nav-bg-solid)',
+              border: '1px solid var(--border)',
+              backdropFilter: 'blur(12px)',
+              padding: 20,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 18,
+            }}
+          >
+            {navItems.map((item) => {
+              const isActive = activeSection === item.id
+              const isAdmin = item.id === 'admin'
+
+              if (isAdmin) {
+                return (
+                  <Fragment key={item.id}>
+                    <div
+                      style={{
+                        height: 1,
+                        background: 'var(--border)',
+                        margin: '2px 0 6px',
+                      }}
+                    />
+                    <Link
+                      href="/admin"
+                      prefetch={true}
+                      className="admin-link-m"
+                      style={{
+                        position: 'relative',
+                        fontFamily: "'DM Mono', monospace",
+                        fontSize: 13,
+                        textDecoration: 'none',
+                        padding: '6px 14px',
+                        borderRadius: 8,
+                        display: 'inline-block',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      {item.label}
+                    </Link>
+                  </Fragment>
                 )
               }
 
@@ -555,118 +755,44 @@ export default function Navbar() {
                   href={`#${item.id}`}
                   onClick={(e) => smoothScrollTo(e, `#${item.id}`)}
                   style={{
-                    position: 'relative',
                     fontFamily: "'DM Mono', monospace",
                     fontSize: 13,
                     color: isActive
                       ? 'var(--text-primary)'
                       : 'var(--text-secondary)',
                     textDecoration: 'none',
-                    letterSpacing: '0.08em',
-                    cursor: 'pointer',
-                    paddingBottom: 4,
-                    transition: '0.25s ease',
                   }}
                 >
                   {item.label}
-
-                  <span
-                    style={{
-                      position: 'absolute',
-                      bottom: 0,
-                      left: 0,
-                      width: '100%',
-                      height: 1,
-                      background: 'var(--text-primary)',
-                      transform: isActive
-                        ? 'scaleX(1)'
-                        : 'scaleX(0)',
-                      transformOrigin: 'left',
-                      transition: 'transform 0.25s ease',
-                    }}
-                  />
                 </a>
               )
             })}
-          </div>
+          </motion.div>
         )}
-
-        {isMobile && (
-          <div
-            onClick={() => setOpen(!open)}
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 4,
-              cursor: 'pointer',
-            }}
-          >
-            <span style={{ width: 20, height: 2, background: 'var(--text-primary)' }} />
-            <span style={{ width: 20, height: 2, background: 'var(--text-primary)' }} />
-            <span style={{ width: 20, height: 2, background: 'var(--text-primary)' }} />
-          </div>
-        )}
-      </div>
-
-      {isMobile && open && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          style={{
-            marginTop: 10,
-            borderRadius: 16,
-            background: 'var(--nav-bg-solid)',
-            border: '1px solid var(--border)',
-            backdropFilter: 'blur(12px)',
-            padding: 20,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 18,
-          }}
-        >
-          {navItems.map((item) => {
-            const isActive = activeSection === item.id
-            const isAdmin = item.id === 'admin'
-
-            if (isAdmin) {
-              return (
-                <Link
-                  key={item.id}
-                  href="/admin"
-                  prefetch={true}
-                  style={{
-                    fontFamily: "'DM Mono', monospace",
-                    fontSize: 13,
-                    color: 'var(--text-secondary)',
-                    textDecoration: 'none',
-                  }}
-                >
-                  {item.label}
-                </Link>
-              )
-            }
-
-            return (
-              <a
-                key={item.id}
-                href={`#${item.id}`}
-                onClick={(e) => smoothScrollTo(e, `#${item.id}`)}
-                style={{
-                  fontFamily: "'DM Mono', monospace",
-                  fontSize: 13,
-                  color: isActive
-                    ? 'var(--text-primary)'
-                    : 'var(--text-secondary)',
-                  textDecoration: 'none',
-                }}
-              >
-                {item.label}
-              </a>
-            )
-          })}
-        </motion.div>
-      )}
-    </motion.nav>
+      </motion.nav>
+      <style>{`
+        .admin-link-m {
+          background: linear-gradient(#111, #111) padding-box, linear-gradient(135deg, #ffffff 0%, #666666 50%, #ffffff 100%) border-box;
+          border: 3px solid transparent;
+          border-radius: 8px;
+          box-shadow: 0 0 4px rgba(255,255,255,0.4), 0 0 12px rgba(255,255,255,0.15);
+          color: #fff;
+          text-shadow: 0 0 8px rgba(255,255,255,0.3);
+        }
+        .admin-link-m::before,
+        .admin-link-m::after {
+          display: none !important;
+        }
+        .admin-link-m:hover {
+        }
+        [data-theme="light"] .admin-link-m {
+          background: linear-gradient(#111, #111) padding-box, linear-gradient(135deg, #ffffff 0%, #666666 50%, #ffffff 100%) border-box;
+          border-color: transparent;
+          box-shadow: 0 0 4px rgba(255,255,255,0.4), 0 0 12px rgba(255,255,255,0.15);
+        }
+        [data-theme="light"] .admin-link-m:hover {
+        }
+      `}</style>
+    </>
   )
 }

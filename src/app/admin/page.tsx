@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { motion } from 'framer-motion'
+import { useToast } from '@/context/ToastContext'
 import { getStoredProjects, addProject, updateProject, deleteProject, resetToStatic, checkAdminPassword } from '@/lib/portfolioDataManager'
 import { getStats, updateStats } from '@/lib/statsDataManager'
 import type { Project, SiteStats } from '@/data/portfolio'
@@ -25,7 +27,7 @@ export default function AdminPage() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState(emptyForm)
   const [showForm, setShowForm] = useState(false)
-  const [toast, setToast] = useState<string | null>(null)
+  const toast = useToast()
   const [stats, setStats] = useState<SiteStats | null>(null)
   const [editStats, setEditStats] = useState(false)
   const [statsForm, setStatsForm] = useState<SiteStats>({ projects: 4, certificates: 1, completedWorks: 4, cvUrl: '' })
@@ -47,11 +49,6 @@ export default function AdminPage() {
       refreshStats()
     }
   }, [authed, refresh, refreshStats])
-
-  const showToast = (msg: string) => {
-    setToast(msg)
-    setTimeout(() => setToast(null), 2500)
-  }
 
   const handleLogin = () => {
     if (checkAdminPassword(password)) {
@@ -89,16 +86,16 @@ export default function AdminPage() {
     const ok = await deleteProject(id)
     if (ok) {
       await refresh()
-      showToast('Project deleted')
+      toast.success({ title: 'Deleted', description: 'Project deleted' })
     } else {
-      showToast('Failed to delete')
+      toast.error({ title: 'Failed', description: 'Failed to delete project' })
     }
   }
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!form.title.trim()) {
-      showToast('Title is required')
+      toast.warning({ title: 'Required', description: 'Title is required' })
       return
     }
 
@@ -117,17 +114,17 @@ export default function AdminPage() {
     if (editingId) {
       const result = await updateProject(editingId, projectData)
       if (result) {
-        showToast('Project updated')
+        toast.success({ title: 'Updated', description: 'Project updated successfully' })
       } else {
-        showToast('Failed to update')
+        toast.error({ title: 'Failed', description: 'Failed to update project' })
         return
       }
     } else {
       const result = await addProject(projectData)
       if (result) {
-        showToast('Project added')
+        toast.success({ title: 'Added', description: 'Project added successfully' })
       } else {
-        showToast('Failed to add')
+        toast.error({ title: 'Failed', description: 'Failed to add project' })
         return
       }
     }
@@ -143,26 +140,31 @@ export default function AdminPage() {
     try {
       await resetToStatic()
       await refresh()
-      showToast('Reset to static defaults')
+      toast.success({ title: 'Reset', description: 'Reset to static defaults' })
     } catch {
-      showToast('Failed to reset')
+      toast.error({ title: 'Failed', description: 'Failed to reset projects' })
     }
   }
 
   const handleSaveStats = async () => {
     const ok = await updateStats(statsForm)
     if (ok) {
-      showToast('Stats updated')
+      toast.success({ title: 'Saved', description: 'Stats updated successfully' })
       setEditStats(false)
       await refreshStats()
     } else {
-      showToast('Failed to update stats')
+      toast.error({ title: 'Failed', description: 'Failed to update stats' })
     }
   }
 
   if (!authed) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.35 }}
+        className="min-h-screen flex items-center justify-center px-4"
+      >
         <div className="w-full max-w-sm glass-card rounded-2xl p-8">
           <h1 className="text-2xl font-bold mb-2">Admin Login</h1>
           <p className="text-sm text-[rgba(var(--c-light),0.5)] mb-6">Enter password to access the dashboard</p>
@@ -182,18 +184,17 @@ export default function AdminPage() {
             Login
           </button>
         </div>
-      </div>
+      </motion.div>
     )
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-10">
-      {toast && (
-        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-xl glass-card text-sm">
-          {toast}
-        </div>
-      )}
-
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.35 }}
+      className="max-w-6xl mx-auto px-6 py-10"
+    >
       <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
         <div>
           <h1 className="text-3xl font-bold">Dashboard</h1>
@@ -335,7 +336,7 @@ export default function AdminPage() {
             <div key={p.id} className="glass-card rounded-2xl p-5 flex flex-col">
               {p.image_url && (
                 <div className="w-full h-36 rounded-xl overflow-hidden mb-3 bg-[rgba(255,255,255,0.03)]">
-                  <img src={p.image_url} alt={p.title} className="w-full h-full object-cover" />
+                  <img src={p.image_url} alt={p.title} loading="lazy" className="w-full h-full object-cover" />
                 </div>
               )}
               <h3 className="font-semibold text-base mb-1 truncate">{p.title}</h3>
@@ -359,6 +360,6 @@ export default function AdminPage() {
           ))}
         </div>
       )}
-    </div>
+    </motion.div>
   )
 }

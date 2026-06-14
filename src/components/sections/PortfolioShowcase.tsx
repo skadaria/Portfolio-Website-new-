@@ -82,6 +82,7 @@ export default function PortfolioShowcase() {
               }}
               transition={{ duration: 0.35 }}
               src={previewImage}
+              loading="lazy"
               className="max-w-[88vw] max-h-[88vh] rounded-3xl object-contain"
             />
           </motion.div>
@@ -155,8 +156,25 @@ export default function PortfolioShowcase() {
                 <div
                   className="grid md:grid-cols-2 xl:grid-cols-3 gap-6 px-1"
                 >
-                   <AnimatePresence mode={isMobile ? 'wait' : 'popLayout'}>
-                    {!loading &&
+                   <AnimatePresence mode="wait">
+                    {loading ? (
+                      Array.from({ length: 3 }).map((_, i) => (
+                        <div
+                          key={`skeleton-${i}`}
+                          className="rounded-[26px] p-4 flex flex-col min-h-[380px] animate-pulse"
+                          style={{
+                            background: 'rgba(255,255,255,0.03)',
+                            border: '1px solid rgba(255,255,255,0.06)',
+                            borderRadius: 26,
+                          }}
+                        >
+                          <div className="w-full h-52 rounded-2xl bg-[rgba(255,255,255,0.04)] mb-3" />
+                          <div className="h-5 w-3/4 rounded bg-[rgba(255,255,255,0.04)] mb-3" />
+                          <div className="h-3 w-full rounded bg-[rgba(255,255,255,0.04)] mb-2" />
+                          <div className="h-3 w-1/2 rounded bg-[rgba(255,255,255,0.04)] mt-auto" />
+                        </div>
+                      ))
+                    ) : (
                       displayedProjects.map(
                         (item, i) => (
                           <motion.div
@@ -193,8 +211,9 @@ export default function PortfolioShowcase() {
                             />
                           </motion.div>
                         )
-                      )}
-                  </AnimatePresence>
+                      )
+                    )}
+                   </AnimatePresence>
                 </div>
 
                 {/* SEE MORE / LESS */}
@@ -269,8 +288,22 @@ export default function PortfolioShowcase() {
 {activeTab === 'techstack' && (
   <div className="min-h-[360px] flex justify-center">
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5 max-w-5xl w-full">
-      {!loading &&
-        techStacks?.map((item, index) => (
+      {loading
+        ? Array.from({ length: 10 }).map((_, i) => (
+            <div
+              key={`skel-tech-${i}`}
+              className="rounded-[24px] flex flex-col items-center justify-center gap-3 h-[125px] w-[125px] mx-auto animate-pulse"
+              style={{
+                background: 'rgba(255,255,255,0.03)',
+                border: '1px solid rgba(255,255,255,0.06)',
+                borderRadius: 24,
+              }}
+            >
+              <div className="w-[56px] h-[56px] rounded-2xl bg-[rgba(255,255,255,0.05)]" />
+              <div className="h-3 w-16 rounded bg-[rgba(255,255,255,0.05)]" />
+            </div>
+          ))
+        : techStacks?.map((item, index) => (
           <motion.div
             key={item.id}
             initial={{
@@ -301,6 +334,8 @@ export default function PortfolioShowcase() {
                 <img
                   src={item.logo_url}
                   alt={item.name}
+                  loading="lazy"
+                  decoding="async"
                   className=              {"relative z-10 w-[56px] h-[56px] object-contain grayscale group-hover:grayscale-0 transition-all duration-500" +
                 (item.name === "Django" || item.name === "Oracle" ? " dark:brightness-[1.5] dark:group-hover:brightness-100" : "") +
                 (item.name === "HTML" || item.name === "CSS" || item.name === "Python" ? " dark:contrast-[1.5] dark:group-hover:contrast-100" : "")}

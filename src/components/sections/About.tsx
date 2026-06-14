@@ -81,7 +81,7 @@ export default function About() {
         { icon: <Award size={14} />, value: String(statsData.certificates), title: "CERTIFICATES" },
         { icon: <Globe size={14} />, value: String(statsData.completedWorks), title: "COMPLETED WORKS" },
       ]
-    : [];
+    : null;
 
   return (
     <section
@@ -205,6 +205,8 @@ export default function About() {
                   <img
                     src="/assets/sk.png"
                     alt="Profile"
+                    loading="lazy"
+                    decoding="async"
                     className="profile-img w-[220px] h-[220px] rounded-full object-cover block"
                     style={{ borderRadius: "50%" }}
                   />
@@ -225,7 +227,8 @@ export default function About() {
             gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)",
           }}
         >
-          {stats.map((item, i) => (
+          {(stats ?? [null, null, null]).map((item, i) => (
+            item ? (
             <motion.div
               key={i}
               variants={pop}
@@ -263,6 +266,19 @@ export default function About() {
                 <ArrowUpRight size={13} />
               </button>
             </motion.div>
+            ) : (
+              <div
+                key={i}
+                className="rounded-2xl border border-[rgba(var(--c-light),0.06)] bg-[rgba(var(--c-light),0.02)] p-5 animate-pulse"
+                style={{ pointerEvents: 'none' }}
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-9 h-9 rounded-full bg-[rgba(var(--c-light),0.06)]" />
+                  <div className="h-5 w-12 rounded bg-[rgba(var(--c-light),0.06)]" />
+                </div>
+                <div className="h-3 w-24 rounded bg-[rgba(var(--c-light),0.06)]" />
+              </div>
+            )
           ))}
         </motion.div>
       </div>

@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
-import { motion, Variants } from 'framer-motion'
+import { useState, useRef, useEffect, useCallback } from 'react'
+import { motion, Variants, AnimatePresence } from 'framer-motion'
 import { ArrowUpRight, Check, Loader2, ChevronDown } from 'lucide-react'
+import { useToast } from '@/context/ToastContext'
 import {
   FaLinkedinIn,
   FaInstagram,
@@ -54,7 +55,21 @@ export default function ContactForm() {
   const [errors, setErrors] = useState<Errors>({})
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [open, setOpen] = useState(false)
+  const toast = useToast()
+  const dropdownRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setOpen(false)
+        setFocused((prev) => prev === 'projectType' ? null : prev)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
 
   const handleChange = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -65,7 +80,7 @@ export default function ContactForm() {
     const e: Errors = {}
     if (!formData.name.trim()) e.name = 'Required'
     if (!formData.email.trim()) e.email = 'Required'
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) e.email = 'Invalid email'
+    else if (!/^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(formData.email)) e.email = 'Invalid email'
     if (!formData.subject.trim()) e.subject = 'Required'
     if (!formData.message.trim()) e.message = 'Required'
     setErrors(e)
@@ -78,25 +93,29 @@ export default function ContactForm() {
     setLoading(true)
 
     try {
-      const emailjs = (await import('@emailjs/browser')).default
-      await emailjs.send(
-        process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
-        process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID!,
-        {
-          name: formData.name,
-          email: formData.email,
-          subject: formData.subject,
-          projectType: formData.projectType,
-          message: formData.message,
-        },
-        process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!
-      )
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      })
+
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Failed to send')
+      }
+
       setSuccess(true)
       setFormData({ name: '', email: '', subject: '', projectType: '', message: '' })
       setTimeout(() => setSuccess(false), 4000)
+      toast.success({ title: 'Sent!', description: 'Your message has been delivered successfully.' })
     } catch (err) {
       console.error(err)
-      alert('Failed to send message. Please try again.')
+      const msg = err instanceof Error ? err.message : ''
+      if (/email|temporary|disposable|invalid|domain/i.test(msg)) {
+        toast.warning({ title: 'Invalid Email', description: 'Please check your email address and try again.' })
+      } else {
+        toast.error({ title: 'Delivery Failed', description: 'Unable to send your message. Please try again or reach out via LinkedIn.' })
+      }
     } finally {
       setLoading(false)
     }
@@ -209,23 +228,61 @@ export default function ContactForm() {
                 {errors.subject && <p className="mt-1 text-[10px] text-[rgba(255,80,80,0.7)]">{errors.subject}</p>}
               </motion.div>
 
-              <motion.div variants={fadeUp}>
+              <motion.div variants={fadeUp} ref={dropdownRef}>
                 <label className={labelClasses}>Project Type</label>
                 <div className="relative">
-                  <select
-                    value={formData.projectType}
-                    onChange={(e) => handleChange('projectType', e.target.value)}
-                    onFocus={() => setFocused('projectType')}
-                    onBlur={() => setFocused(null)}
-                    className={`${inputBase} ${getBorder('projectType')} appearance-none cursor-pointer`}
+                  <button
+                    type="button"
+                    onClick={() => { setOpen((v) => !v); setFocused('projectType') }}
+                    className={`w-full h-[48px] px-4 rounded-xl text-sm outline-none transition-all duration-200 flex items-center justify-between cursor-pointer text-left border-solid dropdown-trigger ${inputBase} ${getBorder('projectType')}`}
                   >
-                    {projectTypes.map((opt) => (
-                      <option key={opt.value} value={opt.value} className="bg-[#141414]">
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none" />
+                    <span className={formData.projectType ? '' : 'text-[var(--text-muted)]'}>
+                      {formData.projectType
+                        ? projectTypes.find((o) => o.value === formData.projectType)?.label
+                        : 'Select type'}
+                    </span>
+                    <motion.span
+                      animate={{ rotate: open ? 180 : 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <ChevronDown size={14} className="text-[var(--text-muted)]" />
+                    </motion.span>
+                  </button>
+                  <AnimatePresence>
+                    {open && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -4, scale: 0.97 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -4, scale: 0.97 }}
+                        transition={{ duration: 0.15, ease: 'easeOut' }}
+                        className="absolute top-full left-0 right-0 z-50 mt-1.5 overflow-hidden dropdown-panel"
+                        style={{
+                          borderRadius: 14,
+                        }}
+                      >
+                        {projectTypes.map((opt, i) => (
+                          <button
+                            key={opt.value}
+                            type="button"
+                            onClick={() => {
+                              handleChange('projectType', opt.value)
+                              setOpen(false)
+                              setFocused(null)
+                            }}
+                            className={`w-full px-4 py-2.5 text-sm text-left transition-all duration-150 cursor-pointer dropdown-item ${
+                              formData.projectType === opt.value ? 'dropdown-item-active' : ''
+                            } ${
+                              formData.projectType === opt.value
+                                ? 'text-[var(--text-primary)]'
+                                : 'text-[var(--text-secondary)]'
+                            }`}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </motion.div>
             </div>
@@ -316,13 +373,40 @@ export default function ContactForm() {
       </div>
 
       <style>{`
-        select option {
-          background: #141414;
-          color: #f0f0f0;
+        .dropdown-panel {
+          background: rgba(255,255,255,0.04);
+          backdrop-filter: blur(40px) saturate(180%);
+          -webkit-backdrop-filter: blur(40px) saturate(180%);
+          border: 1px solid rgba(255,255,255,0.08);
+          box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        }
+        .dropdown-item {
+          background: transparent;
+        }
+        .dropdown-item:hover {
+          background: rgba(255,255,255,0.03);
+        }
+        .dropdown-item-active,
+        .dropdown-item-active:hover {
+          background: rgba(255,255,255,0.06) !important;
+        }
+        [data-theme="light"] .dropdown-panel {
+          background: rgba(255,255,255,0.5);
+          backdrop-filter: blur(50px) saturate(160%);
+          -webkit-backdrop-filter: blur(50px) saturate(160%);
+          border: 1px solid rgba(0,0,0,0.1);
+          box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+        }
+        [data-theme="light"] .dropdown-item:hover {
+          background: rgba(0,0,0,0.04);
+        }
+        [data-theme="light"] .dropdown-item-active,
+        [data-theme="light"] .dropdown-item-active:hover {
+          background: rgba(0,0,0,0.08) !important;
         }
         [data-theme="light"] input,
-        [data-theme="light"] select,
-        [data-theme="light"] textarea {
+        [data-theme="light"] textarea,
+        [data-theme="light"] .dropdown-trigger {
           background: rgba(255,255,255,0.5) !important;
         }
         [data-theme="light"] .contact-btn {
