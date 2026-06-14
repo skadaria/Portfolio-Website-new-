@@ -78,19 +78,25 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: domainCheck.reason }, { status: 400 })
     }
 
+    const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, CONTACT_EMAIL } = process.env
+    if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS || !CONTACT_EMAIL) {
+      console.error('Missing SMTP env vars:', { SMTP_HOST: !!SMTP_HOST, SMTP_PORT: !!SMTP_PORT, SMTP_USER: !!SMTP_USER, SMTP_PASS: !!SMTP_PASS, CONTACT_EMAIL: !!CONTACT_EMAIL })
+      return NextResponse.json({ error: 'SMTP configuration missing' }, { status: 500 })
+    }
+
     const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT) || 587,
+      host: SMTP_HOST,
+      port: Number(SMTP_PORT) || 587,
       secure: false,
       auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
+        user: SMTP_USER,
+        pass: SMTP_PASS,
       },
     })
 
     await transporter.sendMail({
-      from: process.env.SMTP_USER,
-      to: process.env.CONTACT_EMAIL,
+      from: SMTP_USER,
+      to: CONTACT_EMAIL,
       replyTo: email,
       subject: `Portfolio Contact — ${subject}`,
       html: `
@@ -111,6 +117,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Contact API error:', error)
-    return NextResponse.json({ error: 'Failed to send message' }, { status: 500 })
+    const message = error instanceof Error ? error.message : 'Failed to send message'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
