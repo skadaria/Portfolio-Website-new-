@@ -52,7 +52,7 @@ export default function BlogCard({
         {tags.length > 0 && (
           <div className={`flex flex-wrap gap-1.5 ${expanded ? 'mt-3' : 'mt-4'}`}>
             {tags.map(tag => (
-              <span key={tag} className="px-2 py-0.5 rounded-full bg-white/5 text-[10px] text-[rgba(var(--c-light),0.6)]">
+              <span key={tag} className="blog-tag px-2 py-0.5 rounded-full bg-white/5 text-[10px] text-[rgba(var(--c-light),0.6)]">
                 {tag}
               </span>
             ))}

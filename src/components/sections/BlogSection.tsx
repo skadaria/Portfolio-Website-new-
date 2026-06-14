@@ -68,7 +68,7 @@ export default function BlogSection() {
                   {posts.length > 1 && (
                     <button
                       onClick={() => paginate(-1)}
-                      className="shrink-0 p-2 rounded-full bg-[rgba(255,255,255,0.06)] hover:bg-[rgba(255,255,255,0.12)] border border-[rgba(255,255,255,0.08)] backdrop-blur-sm transition"
+                      className="shrink-0 p-2 rounded-full bg-[rgba(255,255,255,0.06)] hover:bg-[rgba(255,255,255,0.12)] border border-[rgba(255,255,255,0.08)] backdrop-blur-sm transition blog-nav-btn"
                     >
                       <ChevronLeft size={20} />
                     </button>
@@ -101,7 +101,7 @@ export default function BlogSection() {
                   {posts.length > 1 && (
                     <button
                       onClick={() => paginate(1)}
-                      className="shrink-0 p-2 rounded-full bg-[rgba(255,255,255,0.06)] hover:bg-[rgba(255,255,255,0.12)] border border-[rgba(255,255,255,0.08)] backdrop-blur-sm transition"
+                      className="shrink-0 p-2 rounded-full bg-[rgba(255,255,255,0.06)] hover:bg-[rgba(255,255,255,0.12)] border border-[rgba(255,255,255,0.08)] backdrop-blur-sm transition blog-nav-btn"
                     >
                       <ChevronRight size={20} />
                     </button>
@@ -117,7 +117,7 @@ export default function BlogSection() {
                           setDirection(i > currentIndex ? 1 : -1)
                           setCurrentIndex(i)
                         }}
-                        className={`h-2 rounded-full transition-all duration-300 ${
+                        className={`blog-dot h-2 rounded-full transition-all duration-300 ${
                           i === currentIndex
                             ? 'w-6 bg-white'
                             : 'w-2 bg-white/30 hover:bg-white/50'

@@ -200,3 +200,25 @@ textarea {
     -webkit-backdrop-filter: none !important;
   }
 }
+
+[data-theme="light"] .blog-nav-btn {
+  background: rgba(0,0,0,0.06) !important;
+  border-color: rgba(0,0,0,0.1) !important;
+}
+[data-theme="light"] .blog-nav-btn:hover {
+  background: rgba(0,0,0,0.12) !important;
+}
+
+[data-theme="light"] .blog-dot {
+  background: rgba(0,0,0,0.3) !important;
+}
+[data-theme="light"] .blog-dot.w-6 {
+  background: rgba(0,0,0,1) !important;
+}
+[data-theme="light"] .blog-dot:hover {
+  background: rgba(0,0,0,0.5) !important;
+}
+
+[data-theme="light"] .blog-tag {
+  background: rgba(0,0,0,0.06) !important;
+}
