@@ -117,6 +117,7 @@ export default function Navbar() {
   const pathname = usePathname()
   const handleLogoClick = () => {
     if (pathname === '/admin') {
+      sessionStorage.removeItem('fromAdmin')
       window.location.href = '/'
       return
     }

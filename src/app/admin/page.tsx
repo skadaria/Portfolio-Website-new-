@@ -55,6 +55,12 @@ export default function AdminPage() {
   }, [])
 
   useEffect(() => {
+    return () => {
+      sessionStorage.setItem('fromAdmin', 'true')
+    }
+  }, [])
+
+  useEffect(() => {
     if (authed) {
       refresh()
       refreshStats()
