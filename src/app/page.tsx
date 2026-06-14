@@ -1,6 +1,6 @@
 'use client'
 
-import { useLayoutEffect, useState, useMemo } from 'react'
+import { useLayoutEffect, useEffect, useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 import AnimatedBackground from '@/components/AnimatedBackground'
@@ -77,6 +77,13 @@ useLayoutEffect(() => {
       setShowWelcome(false)
       setShowApp(true)
     }
+}, [])
+
+useEffect(() => {
+  if (sessionStorage.getItem('fromAdmin') === 'true') {
+    sessionStorage.removeItem('fromAdmin')
+    window.location.reload()
+  }
 }, [])
 
   return (

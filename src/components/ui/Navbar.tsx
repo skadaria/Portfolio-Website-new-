@@ -116,6 +116,10 @@ export default function Navbar() {
   const [showBlur, setShowBlur] = useState(false)
   const pathname = usePathname()
   const handleLogoClick = () => {
+    if (pathname === '/admin') {
+      window.location.href = '/'
+      return
+    }
     const home = document.getElementById('home')
     if (home) {
       home.scrollIntoView({ behavior: 'smooth' })
