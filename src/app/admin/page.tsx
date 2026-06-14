@@ -4,8 +4,9 @@ import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { useToast } from '@/context/ToastContext'
 import { getStoredProjects, addProject, updateProject, deleteProject, resetToStatic, checkAdminPassword } from '@/lib/portfolioDataManager'
+import { getBlogPosts, addBlogPost, updateBlogPost, deleteBlogPost } from '@/lib/blogDataManager'
 import { getStats, updateStats } from '@/lib/statsDataManager'
-import type { Project, SiteStats } from '@/data/portfolio'
+import type { Project, SiteStats, BlogPost } from '@/data/portfolio'
 
 const emptyForm = {
   title: '',
@@ -28,6 +29,11 @@ export default function AdminPage() {
   const [form, setForm] = useState(emptyForm)
   const [showForm, setShowForm] = useState(false)
   const toast = useToast()
+  const [activeTab, setActiveTab] = useState<'projects' | 'blog'>('projects')
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([])
+  const [editingBlogId, setEditingBlogId] = useState<string | null>(null)
+  const [showBlogForm, setShowBlogForm] = useState(false)
+  const [blogForm, setBlogForm] = useState({ title: '', excerpt: '', content: '', tags: '', created_at: new Date().toISOString().split('T')[0] })
   const [stats, setStats] = useState<SiteStats | null>(null)
   const [editStats, setEditStats] = useState(false)
   const [statsForm, setStatsForm] = useState<SiteStats>({ projects: 4, certificates: 1, completedWorks: 4, cvUrl: '' })
@@ -36,6 +42,11 @@ export default function AdminPage() {
     const s = await getStats()
     setStats(s)
     setStatsForm(s)
+  }, [])
+
+  const refreshBlog = useCallback(async () => {
+    const p = await getBlogPosts()
+    setBlogPosts(p)
   }, [])
 
   const refresh = useCallback(async () => {
@@ -47,6 +58,7 @@ export default function AdminPage() {
     if (authed) {
       refresh()
       refreshStats()
+      refreshBlog()
     }
   }, [authed, refresh, refreshStats])
 
@@ -155,6 +167,75 @@ export default function AdminPage() {
     } else {
       toast.error({ title: 'Failed', description: 'Failed to update stats' })
     }
+  }
+
+  const handleAddBlog = () => {
+    setBlogForm({ title: '', excerpt: '', content: '', tags: '', created_at: new Date().toISOString().split('T')[0] })
+    setEditingBlogId(null)
+    setShowBlogForm(true)
+  }
+
+  const handleEditBlog = (p: BlogPost) => {
+    setBlogForm({
+      title: p.title,
+      excerpt: p.excerpt,
+      content: p.content,
+      tags: p.tags,
+      created_at: p.created_at,
+    })
+    setEditingBlogId(p.id)
+    setShowBlogForm(true)
+  }
+
+  const handleDeleteBlog = async (id: string) => {
+    if (!confirm('Delete this blog post permanently?')) return
+    const ok = await deleteBlogPost(id)
+    if (ok) {
+      await refreshBlog()
+      toast.success({ title: 'Deleted', description: 'Blog post deleted' })
+    } else {
+      toast.error({ title: 'Failed', description: 'Failed to delete blog post' })
+    }
+  }
+
+  const handleSaveBlog = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!blogForm.title.trim()) {
+      toast.warning({ title: 'Required', description: 'Title is required' })
+      return
+    }
+
+    const blogData = {
+      title: blogForm.title.trim(),
+      excerpt: blogForm.excerpt.trim(),
+      content: blogForm.content.trim(),
+      tags: blogForm.tags.trim(),
+      image_url: null,
+      created_at: blogForm.created_at || new Date().toISOString().split('T')[0],
+    }
+
+    if (editingBlogId) {
+      const result = await updateBlogPost(editingBlogId, blogData)
+      if (result) {
+        toast.success({ title: 'Updated', description: 'Blog post updated successfully' })
+      } else {
+        toast.error({ title: 'Failed', description: 'Failed to update blog post' })
+        return
+      }
+    } else {
+      const result = await addBlogPost(blogData)
+      if (result) {
+        toast.success({ title: 'Added', description: 'Blog post added successfully' })
+      } else {
+        toast.error({ title: 'Failed', description: 'Failed to add blog post' })
+        return
+      }
+    }
+
+    setShowBlogForm(false)
+    setEditingBlogId(null)
+    setBlogForm({ title: '', excerpt: '', content: '', tags: '', created_at: new Date().toISOString().split('T')[0] })
+    await refreshBlog()
   }
 
   if (!authed) {
@@ -271,94 +352,200 @@ export default function AdminPage() {
         )}
       </div>
 
-      {showForm && (
-        <div className="glass-card rounded-2xl p-6 mb-8">
-          <h2 className="text-lg font-semibold mb-4">
-            {editingId ? 'Edit Project' : 'Add Project'}
-          </h2>
-          <form onSubmit={handleSave} className="grid md:grid-cols-2 gap-4">
-            <div className="md:col-span-2">
-              <label className="text-xs text-[rgba(var(--c-light),0.5)] block mb-1">Title *</label>
-              <input value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} className="w-full px-4 py-2.5 rounded-xl bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] text-white outline-none focus:border-[rgba(255,255,255,0.3)] transition" />
+      <div className="flex gap-1 mb-6 bg-[rgba(255,255,255,0.03)] rounded-xl p-1">
+        <button
+          onClick={() => setActiveTab('projects')}
+          className={`flex-1 py-2 rounded-lg text-sm transition ${
+            activeTab === 'projects' ? 'bg-white/10 text-white' : 'text-[rgba(var(--c-light),0.5)] hover:text-white'
+          }`}
+        >
+          Projects
+        </button>
+        <button
+          onClick={() => setActiveTab('blog')}
+          className={`flex-1 py-2 rounded-lg text-sm transition ${
+            activeTab === 'blog' ? 'bg-white/10 text-white' : 'text-[rgba(var(--c-light),0.5)] hover:text-white'
+          }`}
+        >
+          Blog
+        </button>
+      </div>
+
+      {activeTab === 'projects' && (
+        <>
+          {showForm && (
+            <div className="glass-card rounded-2xl p-6 mb-8">
+              <h2 className="text-lg font-semibold mb-4">
+                {editingId ? 'Edit Project' : 'Add Project'}
+              </h2>
+              <form onSubmit={handleSave} className="grid md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <label className="text-xs text-[rgba(var(--c-light),0.5)] block mb-1">Title *</label>
+                  <input value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} className="w-full px-4 py-2.5 rounded-xl bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] text-white outline-none focus:border-[rgba(255,255,255,0.3)] transition" />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="text-xs text-[rgba(var(--c-light),0.5)] block mb-1">Description</label>
+                  <textarea value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} rows={3} className="w-full px-4 py-2.5 rounded-xl bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] text-white outline-none focus:border-[rgba(255,255,255,0.3)] transition resize-none" />
+                </div>
+                <div>
+                  <label className="text-xs text-[rgba(var(--c-light),0.5)] block mb-1">Technologies (comma-separated)</label>
+                  <input value={form.technologies} onChange={e => setForm(p => ({ ...p, technologies: e.target.value }))} className="w-full px-4 py-2.5 rounded-xl bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] text-white outline-none focus:border-[rgba(255,255,255,0.3)] transition" />
+                </div>
+                <div>
+                  <label className="text-xs text-[rgba(var(--c-light),0.5)] block mb-1">Key Features (comma-separated)</label>
+                  <input value={form.key_features} onChange={e => setForm(p => ({ ...p, key_features: e.target.value }))} className="w-full px-4 py-2.5 rounded-xl bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] text-white outline-none focus:border-[rgba(255,255,255,0.3)] transition" />
+                </div>
+                <div>
+                  <label className="text-xs text-[rgba(var(--c-light),0.5)] block mb-1">Image URL</label>
+                  <input value={form.image_url} onChange={e => setForm(p => ({ ...p, image_url: e.target.value }))} className="w-full px-4 py-2.5 rounded-xl bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] text-white outline-none focus:border-[rgba(255,255,255,0.3)] transition" />
+                </div>
+                <div>
+                  <label className="text-xs text-[rgba(var(--c-light),0.5)] block mb-1">Image URLs (comma-separated)</label>
+                  <input value={form.image_urls} onChange={e => setForm(p => ({ ...p, image_urls: e.target.value }))} className="w-full px-4 py-2.5 rounded-xl bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] text-white outline-none focus:border-[rgba(255,255,255,0.3)] transition" />
+                </div>
+                <div>
+                  <label className="text-xs text-[rgba(var(--c-light),0.5)] block mb-1">Live URL</label>
+                  <input value={form.live_url} onChange={e => setForm(p => ({ ...p, live_url: e.target.value }))} className="w-full px-4 py-2.5 rounded-xl bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] text-white outline-none focus:border-[rgba(255,255,255,0.3)] transition" />
+                </div>
+                <div>
+                  <label className="text-xs text-[rgba(var(--c-light),0.5)] block mb-1">GitHub URL</label>
+                  <input value={form.github_url} onChange={e => setForm(p => ({ ...p, github_url: e.target.value }))} className="w-full px-4 py-2.5 rounded-xl bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] text-white outline-none focus:border-[rgba(255,255,255,0.3)] transition" />
+                </div>
+                <div>
+                  <label className="text-xs text-[rgba(var(--c-light),0.5)] block mb-1">Created At</label>
+                  <input type="date" value={form.created_at} onChange={e => setForm(p => ({ ...p, created_at: e.target.value }))} className="w-full px-4 py-2.5 rounded-xl bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] text-white outline-none focus:border-[rgba(255,255,255,0.3)] transition" />
+                </div>
+                <div className="md:col-span-2 flex gap-3 pt-2">
+                  <button type="submit" className="px-6 py-2.5 rounded-xl bg-white/20 hover:bg-white/30 text-white font-medium transition">
+                    {editingId ? 'Update' : 'Add'} Project
+                  </button>
+                  <button type="button" onClick={() => { setShowForm(false); setEditingId(null); setForm(emptyForm) }} className="px-6 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 transition">
+                    Cancel
+                  </button>
+                </div>
+              </form>
             </div>
-            <div className="md:col-span-2">
-              <label className="text-xs text-[rgba(var(--c-light),0.5)] block mb-1">Description</label>
-              <textarea value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} rows={3} className="w-full px-4 py-2.5 rounded-xl bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] text-white outline-none focus:border-[rgba(255,255,255,0.3)] transition resize-none" />
+          )}
+
+          {projects.length === 0 ? (
+            <div className="text-center py-20 text-[rgba(var(--c-light),0.3)]">
+              <p className="text-lg">No projects yet</p>
+              <p className="text-sm mt-1">Click &quot;+ Add Project&quot; to get started</p>
             </div>
-            <div>
-              <label className="text-xs text-[rgba(var(--c-light),0.5)] block mb-1">Technologies (comma-separated)</label>
-              <input value={form.technologies} onChange={e => setForm(p => ({ ...p, technologies: e.target.value }))} className="w-full px-4 py-2.5 rounded-xl bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] text-white outline-none focus:border-[rgba(255,255,255,0.3)] transition" />
+          ) : (
+            <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+              {projects.map(p => (
+                <div key={p.id} className="glass-card rounded-2xl p-5 flex flex-col">
+                  {p.image_url && (
+                    <div className="w-full h-36 rounded-xl overflow-hidden mb-3 bg-[rgba(255,255,255,0.03)]">
+                      <img src={p.image_url} alt={p.title} loading="lazy" className="w-full h-full object-cover" />
+                    </div>
+                  )}
+                  <h3 className="font-semibold text-base mb-1 truncate">{p.title}</h3>
+                  <p className="text-xs text-[rgba(var(--c-light),0.5)] line-clamp-2 mb-3">{p.description}</p>
+                  <div className="flex flex-wrap gap-1.5 mb-3">
+                    {p.technologies.split(', ').map(t => (
+                      <span key={t} className="px-2 py-0.5 rounded-full bg-white/5 text-[10px] text-[rgba(var(--c-light),0.6)]">
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="mt-auto pt-2 flex gap-2 border-t border-[rgba(255,255,255,0.06)]">
+                    <button onClick={() => handleEdit(p)} className="flex-1 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-xs transition">
+                      Edit
+                    </button>
+                    <button onClick={() => handleDelete(p.id)} className="flex-1 py-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs transition">
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
-            <div>
-              <label className="text-xs text-[rgba(var(--c-light),0.5)] block mb-1">Key Features (comma-separated)</label>
-              <input value={form.key_features} onChange={e => setForm(p => ({ ...p, key_features: e.target.value }))} className="w-full px-4 py-2.5 rounded-xl bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] text-white outline-none focus:border-[rgba(255,255,255,0.3)] transition" />
-            </div>
-            <div>
-              <label className="text-xs text-[rgba(var(--c-light),0.5)] block mb-1">Image URL</label>
-              <input value={form.image_url} onChange={e => setForm(p => ({ ...p, image_url: e.target.value }))} className="w-full px-4 py-2.5 rounded-xl bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] text-white outline-none focus:border-[rgba(255,255,255,0.3)] transition" />
-            </div>
-            <div>
-              <label className="text-xs text-[rgba(var(--c-light),0.5)] block mb-1">Image URLs (comma-separated)</label>
-              <input value={form.image_urls} onChange={e => setForm(p => ({ ...p, image_urls: e.target.value }))} className="w-full px-4 py-2.5 rounded-xl bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] text-white outline-none focus:border-[rgba(255,255,255,0.3)] transition" />
-            </div>
-            <div>
-              <label className="text-xs text-[rgba(var(--c-light),0.5)] block mb-1">Live URL</label>
-              <input value={form.live_url} onChange={e => setForm(p => ({ ...p, live_url: e.target.value }))} className="w-full px-4 py-2.5 rounded-xl bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] text-white outline-none focus:border-[rgba(255,255,255,0.3)] transition" />
-            </div>
-            <div>
-              <label className="text-xs text-[rgba(var(--c-light),0.5)] block mb-1">GitHub URL</label>
-              <input value={form.github_url} onChange={e => setForm(p => ({ ...p, github_url: e.target.value }))} className="w-full px-4 py-2.5 rounded-xl bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] text-white outline-none focus:border-[rgba(255,255,255,0.3)] transition" />
-            </div>
-            <div>
-              <label className="text-xs text-[rgba(var(--c-light),0.5)] block mb-1">Created At</label>
-              <input type="date" value={form.created_at} onChange={e => setForm(p => ({ ...p, created_at: e.target.value }))} className="w-full px-4 py-2.5 rounded-xl bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] text-white outline-none focus:border-[rgba(255,255,255,0.3)] transition" />
-            </div>
-            <div className="md:col-span-2 flex gap-3 pt-2">
-              <button type="submit" className="px-6 py-2.5 rounded-xl bg-white/20 hover:bg-white/30 text-white font-medium transition">
-                {editingId ? 'Update' : 'Add'} Project
-              </button>
-              <button type="button" onClick={() => { setShowForm(false); setEditingId(null); setForm(emptyForm) }} className="px-6 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 transition">
-                Cancel
-              </button>
-            </div>
-          </form>
-        </div>
+          )}
+        </>
       )}
 
-      {projects.length === 0 ? (
-        <div className="text-center py-20 text-[rgba(var(--c-light),0.3)]">
-          <p className="text-lg">No projects yet</p>
-          <p className="text-sm mt-1">Click &quot;+ Add Project&quot; to get started</p>
-        </div>
-      ) : (
-        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {projects.map(p => (
-            <div key={p.id} className="glass-card rounded-2xl p-5 flex flex-col">
-              {p.image_url && (
-                <div className="w-full h-36 rounded-xl overflow-hidden mb-3 bg-[rgba(255,255,255,0.03)]">
-                  <img src={p.image_url} alt={p.title} loading="lazy" className="w-full h-full object-cover" />
+      {activeTab === 'blog' && (
+        <>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg font-semibold">Blog Posts</h2>
+            <button
+              onClick={handleAddBlog}
+              className="px-5 py-2.5 rounded-xl bg-white/20 hover:bg-white/30 text-white text-sm font-medium transition"
+            >
+              + Add Blog Post
+            </button>
+          </div>
+
+          {showBlogForm && (
+            <div className="glass-card rounded-2xl p-6 mb-8">
+              <h2 className="text-lg font-semibold mb-4">
+                {editingBlogId ? 'Edit Blog Post' : 'Add Blog Post'}
+              </h2>
+              <form onSubmit={handleSaveBlog} className="grid md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <label className="text-xs text-[rgba(var(--c-light),0.5)] block mb-1">Title *</label>
+                  <input value={blogForm.title} onChange={e => setBlogForm(p => ({ ...p, title: e.target.value }))} className="w-full px-4 py-2.5 rounded-xl bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] text-white outline-none focus:border-[rgba(255,255,255,0.3)] transition" />
                 </div>
-              )}
-              <h3 className="font-semibold text-base mb-1 truncate">{p.title}</h3>
-              <p className="text-xs text-[rgba(var(--c-light),0.5)] line-clamp-2 mb-3">{p.description}</p>
-              <div className="flex flex-wrap gap-1.5 mb-3">
-                {p.technologies.split(', ').map(t => (
-                  <span key={t} className="px-2 py-0.5 rounded-full bg-white/5 text-[10px] text-[rgba(var(--c-light),0.6)]">
-                    {t}
-                  </span>
-                ))}
-              </div>
-              <div className="mt-auto pt-2 flex gap-2 border-t border-[rgba(255,255,255,0.06)]">
-                <button onClick={() => handleEdit(p)} className="flex-1 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-xs transition">
-                  Edit
-                </button>
-                <button onClick={() => handleDelete(p.id)} className="flex-1 py-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs transition">
-                  Delete
-                </button>
-              </div>
+                <div className="md:col-span-2">
+                  <label className="text-xs text-[rgba(var(--c-light),0.5)] block mb-1">Excerpt</label>
+                  <textarea value={blogForm.excerpt} onChange={e => setBlogForm(p => ({ ...p, excerpt: e.target.value }))} rows={3} className="w-full px-4 py-2.5 rounded-xl bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] text-white outline-none focus:border-[rgba(255,255,255,0.3)] transition resize-none" />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="text-xs text-[rgba(var(--c-light),0.5)] block mb-1">Content</label>
+                  <textarea value={blogForm.content} onChange={e => setBlogForm(p => ({ ...p, content: e.target.value }))} rows={6} className="w-full px-4 py-2.5 rounded-xl bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] text-white outline-none focus:border-[rgba(255,255,255,0.3)] transition resize-none" />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="text-xs text-[rgba(var(--c-light),0.5)] block mb-1">Tags (comma-separated)</label>
+                  <input value={blogForm.tags} onChange={e => setBlogForm(p => ({ ...p, tags: e.target.value }))} className="w-full px-4 py-2.5 rounded-xl bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] text-white outline-none focus:border-[rgba(255,255,255,0.3)] transition" />
+                </div>
+                <div>
+                  <label className="text-xs text-[rgba(var(--c-light),0.5)] block mb-1">Created At</label>
+                  <input type="date" value={blogForm.created_at} onChange={e => setBlogForm(p => ({ ...p, created_at: e.target.value }))} className="w-full px-4 py-2.5 rounded-xl bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] text-white outline-none focus:border-[rgba(255,255,255,0.3)] transition" />
+                </div>
+                <div className="md:col-span-2 flex gap-3 pt-2">
+                  <button type="submit" className="px-6 py-2.5 rounded-xl bg-white/20 hover:bg-white/30 text-white font-medium transition">
+                    {editingBlogId ? 'Update' : 'Add'} Blog Post
+                  </button>
+                  <button type="button" onClick={() => { setShowBlogForm(false); setEditingBlogId(null); setBlogForm({ title: '', excerpt: '', content: '', tags: '', created_at: new Date().toISOString().split('T')[0] }) }} className="px-6 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 transition">
+                    Cancel
+                  </button>
+                </div>
+              </form>
             </div>
-          ))}
-        </div>
+          )}
+
+          {blogPosts.length === 0 ? (
+            <div className="text-center py-20 text-[rgba(var(--c-light),0.3)]">
+              <p className="text-lg">No blog posts yet</p>
+              <p className="text-sm mt-1">Click &quot;+ Add Blog Post&quot; to get started</p>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+              {blogPosts.map(p => (
+                <div key={p.id} className="glass-card rounded-2xl p-5 flex flex-col">
+                  <h3 className="font-semibold text-base mb-1 truncate">{p.title}</h3>
+                  <p className="text-xs text-[rgba(var(--c-light),0.5)] line-clamp-2 mb-3">{p.excerpt}</p>
+                  <div className="flex flex-wrap gap-1.5 mb-3">
+                    {p.tags.split(',').map(t => t.trim()).filter(Boolean).map(t => (
+                      <span key={t} className="px-2 py-0.5 rounded-full bg-white/5 text-[10px] text-[rgba(var(--c-light),0.6)]">
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="mt-auto pt-2 flex gap-2 border-t border-[rgba(255,255,255,0.06)]">
+                    <button onClick={() => handleEditBlog(p)} className="flex-1 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-xs transition">
+                      Edit
+                    </button>
+                    <button onClick={() => handleDeleteBlog(p.id)} className="flex-1 py-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs transition">
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
       )}
     </motion.div>
   )

@@ -4,7 +4,7 @@ import { useState, useEffect, Fragment } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { Home, User, Briefcase, Mail, Shield, ExternalLink } from 'lucide-react'
+import { Home, User, Briefcase, FileText, Mail, Shield, ExternalLink } from 'lucide-react'
 import ThemeToggle from './ThemeToggle'
 
 function GithubIcon({ size = 16 }: { size?: number }) {
@@ -138,7 +138,7 @@ export default function Navbar() {
 
       if (!ticking) {
         requestAnimationFrame(() => {
-          const sections = ['home', 'about', 'portfolio', 'contact']
+          const sections = ['home', 'about', 'portfolio', 'blog', 'contact']
 
           for (const sectionId of sections) {
             const section = document.getElementById(sectionId)
@@ -218,6 +218,7 @@ export default function Navbar() {
     { label: 'Home', id: 'home', icon: Home },
     { label: 'About', id: 'about', icon: User },
     { label: 'Portfolio', id: 'portfolio', icon: Briefcase },
+    { label: 'Blogs', id: 'blog', icon: FileText },
     { label: 'Contact', id: 'contact', icon: Mail },
     { label: 'Admin', id: 'admin', icon: Shield },
   ]

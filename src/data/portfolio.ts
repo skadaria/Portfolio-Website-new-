@@ -98,6 +98,46 @@ export const techStacks: TechStack[] = [
   { id: 10, name: "Apex", logo_url: "https://raw.githubusercontent.com/Dani3lSun/awesome-orclapex/master/apex-logo.svg", created_at: "2025-01-01" },
 ]
 
+export interface BlogPost {
+  id: string
+  title: string
+  excerpt: string
+  content: string
+  tags: string
+  image_url: string | null
+  created_at: string
+}
+
+export const blogPosts: BlogPost[] = [
+  {
+    id: "1",
+    title: "Building Scalable Web Apps with Next.js",
+    excerpt: "A deep dive into server-side rendering, static generation, and the new App Router patterns.",
+    content: "Next.js has evolved significantly over the years. With the introduction of the App Router, we now have a more intuitive way to build full-stack applications. Server Components allow us to reduce client-side JavaScript while keeping interactivity where it matters. The new data fetching patterns make it easier than ever to build hybrid applications that are both fast and dynamic.",
+    tags: "Next.js, React, Web Dev",
+    image_url: null,
+    created_at: "2026-06-10",
+  },
+  {
+    id: "2",
+    title: "Why I Switched from EmailJS to Gmail SMTP",
+    excerpt: "Comparing email services and why direct SMTP gave me full control over my contact form.",
+    content: "EmailJS was great for quick prototyping, but I needed unlimited quota and direct inbox control. Switching to Gmail SMTP with an App Password was straightforward: set up nodemailer, add proper email validation with DNS MX lookups, and handle spam with disposable domain checks. The result is a contact form that's both reliable and secure.",
+    tags: "Email, SMTP, Backend",
+    image_url: null,
+    created_at: "2026-06-08",
+  },
+  {
+    id: "3",
+    title: "Custom Toast Notifications with Framer Motion",
+    excerpt: "Building a lightweight toast system without external libraries using React context and framer-motion.",
+    content: "When I needed toast notifications for my portfolio, I decided not to reach for a library. Using React Context for state management and framer-motion for animations, I built a custom toast system with progress bars, pause-on-hover, and smooth enter/exit transitions. The result is lightweight, fully customizable, and integrates perfectly with the existing theme system.",
+    tags: "React, Framer Motion, UI",
+    image_url: null,
+    created_at: "2026-06-05",
+  },
+]
+
 export interface SiteStats {
   projects: number
   certificates: number
