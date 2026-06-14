@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server'
-import { promises as dns } from 'dns'
 import nodemailer from 'nodemailer'
 
 const DISPOSABLE_DOMAINS = new Set([
@@ -8,33 +7,6 @@ const DISPOSABLE_DOMAINS = new Set([
   'mailnesia.com', 'tempmail.com', 'tempinbox.com', 'fakeinbox.com',
   'dispostable.com', 'getnada.com', 'inboxkitten.com',
 ])
-
-const GENERIC_MX_PATTERNS = [
-  /mailerhost\.net$/i,
-  /\.hostinger\.com$/i,
-  /mx\.*\d*\.*host/i,
-  /smtp\.*\d*\.*server/i,
-  /forwarding\.*\d*\.*email/i,
-  /mail\.hosting\./i,
-  /\.mail\.com$/i,
-  /mx\d*\.*\w*\.*\d*\.*mail/i,
-  /\.pickelhost\.com$/i,
-  /^mail\.\w*host/i,
-  /\.\w*hosting\.\w+$/i,
-]
-
-const LEGITIMATE_MX_DOMAINS = [
-  /google\.com$/i,
-  /protection\.outlook\.com$/i,
-  /zoho\.com$/i,
-  /protonmail\.ch$/i,
-  /proton\.me$/i,
-  /fastmail\.com$/i,
-  /mailgun\.org$/i,
-  /sendgrid\.net$/i,
-  /mxrouting\.net$/i,
-  /secureserver\.net$/i,
-]
 
 const VALID_TLDS = new Set([
   'com', 'org', 'net', 'edu', 'gov', 'io', 'co', 'app', 'dev', 'me',
@@ -74,47 +46,7 @@ async function validateDomain(domain: string): Promise<{ valid: boolean; reason?
   if (!tld || !VALID_TLDS.has(tld)) {
     return { valid: false, reason: 'Email domain does not exist' }
   }
-
-  try {
-    const mxPromise = dns.resolveMx(domain)
-    const timeout = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error('DNS timeout')), 5000)
-    )
-    const mx = await Promise.race([mxPromise, timeout])
-
-    if (!mx || mx.length === 0) {
-      return { valid: false, reason: 'Email domain does not exist' }
-    }
-
-    const hasLegitimateMx = mx.some((record) =>
-      LEGITIMATE_MX_DOMAINS.some((pattern) => pattern.test(record.exchange))
-    )
-    if (hasLegitimateMx) {
-      return { valid: true }
-    }
-
-    const allGeneric = mx.every((record) =>
-      GENERIC_MX_PATTERNS.some((pattern) => pattern.test(record.exchange))
-    )
-    if (allGeneric) {
-      return { valid: false, reason: 'Email domain does not exist' }
-    }
-
-    const name = domain.split('.')[0]
-    if (name.length < 3) return { valid: false, reason: 'Email domain does not exist' }
-    if (/^(.)\1{3,}$/.test(name)) return { valid: false, reason: 'Email domain does not exist' }
-    if (/^[aeiou]+$/i.test(name)) return { valid: false, reason: 'Email domain does not exist' }
-    const consonantRatio = (name.match(/[bcdfghjklmnpqrstvwxyz]/gi) || []).length / name.length
-    if (name.length >= 5 && consonantRatio > 0.75) return { valid: false, reason: 'Email domain does not exist' }
-
-    return { valid: true }
-  } catch (err: unknown) {
-    const code = (err as NodeJS.ErrnoException)?.code
-    if (code === 'ENOTFOUND' || code === 'ENODATA' || code === 'ESERVFAIL' || code === 'ETIMEOUT') {
-      return { valid: false, reason: 'Email domain does not exist' }
-    }
-    return { valid: false, reason: 'Email domain does not exist' }
-  }
+  return { valid: true }
 }
 
 export async function POST(request: Request) {
